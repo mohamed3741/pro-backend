@@ -11,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class Zone extends HasTimestamps {
+public class Zone extends HasTimestamps implements Archivable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "zone_id_seq")
@@ -30,5 +30,8 @@ public class Zone extends HasTimestamps {
     @Column(nullable = false)
     @Builder.Default
     private Boolean active = true;
+
+    @Builder.Default
+    private Boolean archived = false;
 }
 

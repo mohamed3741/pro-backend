@@ -11,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class Rating extends HasTimestamps {
+public class Rating extends HasTimestamps implements Archivable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "rating_id_seq")
@@ -39,5 +39,8 @@ public class Rating extends HasTimestamps {
 
     @Column(columnDefinition = "TEXT")
     private String comment;
+
+    @Builder.Default
+    private Boolean archived = false;
 }
 

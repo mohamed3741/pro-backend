@@ -17,7 +17,7 @@ import java.io.Serial;
 @AllArgsConstructor
 @SuperBuilder
 @ToString(onlyExplicitlyIncluded = true)
-public class Payment extends HasTimestamps {
+public class Payment extends HasTimestamps implements Archivable {
 
     @Serial
     private static final long serialVersionUID = -2597571074856405435L;
@@ -62,4 +62,7 @@ public class Payment extends HasTimestamps {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "main_payment_id")
     private Payment mainPayment;
+
+    @Builder.Default
+    private Boolean archived = false;
 }

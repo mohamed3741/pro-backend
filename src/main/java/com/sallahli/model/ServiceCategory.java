@@ -34,5 +34,8 @@ public class ServiceCategory extends HasTimestamps implements Archivable {
     @Column(nullable = false)
     @Builder.Default
     private Boolean active = true;
+
+    @Builder.Default
+    private Boolean archived = false;
 }
 

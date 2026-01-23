@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class LeadAcceptance extends HasTimestamps {
+public class LeadAcceptance extends HasTimestamps implements Archivable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "lead_acceptance_id_seq")
@@ -36,5 +36,8 @@ public class LeadAcceptance extends HasTimestamps {
     private Long priceMru;
 
     private LocalDateTime acceptedAt;
+
+    @Builder.Default
+    private Boolean archived = false;
 }
 

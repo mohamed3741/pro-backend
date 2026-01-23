@@ -18,7 +18,7 @@ import java.util.Objects;
 @EqualsAndHashCode(callSuper = true, of = "id")
 @Entity
 @Table(name = "media")
-public class Media extends HasTimestamps {
+public class Media extends HasTimestamps implements Archivable {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "media_id_seq")
     @SequenceGenerator(name = "media_id_seq", sequenceName = "media_id_seq",  allocationSize=1)
@@ -35,6 +35,9 @@ public class Media extends HasTimestamps {
     private Long sizeBytes;
     @Column(name = "mime_type")
     private String mimeType;
+
+    @Builder.Default
+    private Boolean archived = false;
 
     @Override
     public int hashCode() {
