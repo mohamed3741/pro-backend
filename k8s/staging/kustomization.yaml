@@ -1,0 +1,14 @@
+bases:
+    - ../base
+
+namespace: dentist
+resources:
+    - namespace.yaml
+    - ingress.yaml
+    - postgres-clinic.yaml
+    - pvc-clinic.yaml
+    - regcred.yaml
+
+
+patchesStrategicMerge:
+    - clinic-backend.yaml

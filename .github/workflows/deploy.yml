@@ -1,0 +1,91 @@
+# This is a basic workflow that is manually triggered
+
+name: Deploy on kubernetes
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on:
+  workflow_dispatch:
+    # Inputs the workflow accepts.
+    inputs:
+      DEPLOY_VERSION:
+        description: 'Tag Version (v0.0.1)'
+        required: true
+      ENV:
+        type: choice
+        description: 'Environment'
+        required: false
+        options:
+          - staging
+          - production
+        default: 'staging'
+
+jobs:
+  deploy:
+    name: "Deploying ${{ github.event.inputs.DEPLOY_VERSION }} to ${{ github.event.inputs.ENV }} by ${{ github.actor }}"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - if: ${{ github.event.inputs.DEPLOY_VERSION != 'main' }}
+        run: |
+          export version=${{ github.event.inputs.DEPLOY_VERSION }} && \
+          if git ls-remote origin refs/tags/$version |grep $version
+          then
+              echo "tag exist! keep going and deploy"
+          else
+              echo "tag doesn't exist"
+              exit 1
+          fi
+
+      - name: Kustomize
+        uses: danielr1996/kubectl-action@1.0.0
+
+      - id: secret_name
+        run: |
+          if [ "${{ github.event.inputs.ENV }}" == "staging" ]; then
+            echo "::set-output name=KUBE_CONFIG::KUBE_CONFIG_STAGING"
+          else
+            echo "::set-output name=KUBE_CONFIG::KUBE_CONFIG_PRODUCTION"
+          fi
+      - name: prepare kubeconfig
+        env:
+          kubeconfig: ${{ secrets[steps.secret_name.outputs.KUBE_CONFIG] }}
+        run: |
+          mkdir -p ~/.kube/
+          echo "${kubeconfig}" | base64 -d  > ~/.kube/config
+      - name: switch to ${{ github.event.inputs.DEPLOY_VERSION }}
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.DEPLOY_VERSION }}
+      - name: calculate images
+        run: |
+          git status
+          export TAG_clinic=$(git ls-files -s . | git hash-object --stdin)
+          
+          cd k8s/${{github.event.inputs.ENV}}
+          
+          kustomize edit set image ghcr.io/mohamed3741/pro-backend=ghcr.io/mohamed3741/pro-backend:$TAG_clinic
+
+
+      - name: annotate namespaces
+        run: |
+          cat <<EOT >> k8s/${{github.event.inputs.ENV}}/kustomization.yaml
+          
+          patches:
+            - patch: |-
+                - op: add
+                  path: "/metadata/annotations"
+                  value:
+                    version: "${{ github.event.inputs.DEPLOY_VERSION }}"
+              target:
+                  kind: Namespace
+          EOT
+          
+          cat k8s/${{github.event.inputs.ENV}}/kustomization.yaml
+
+      - name: Generate final k8s manifest file
+        run: kustomize build k8s/${{github.event.inputs.ENV}} > deploy.yaml
+      - name: deploy to k8s ${{ github.event.inputs.ENV }}
+        run: |
+          kubectl apply -f deploy.yaml

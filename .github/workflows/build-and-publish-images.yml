@@ -1,0 +1,66 @@
+name: Build docker images
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+
+jobs:
+  clinic-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Check secret availability
+        run: |
+          if [ -z "${{ secrets.NEW_DOCKER_REGISTRY_SECRET }}" ]; then
+            echo "NEW_DOCKER_REGISTRY_SECRET is empty"
+          else
+            echo "NEW_DOCKER_REGISTRY_SECRET is available"
+          fi
+
+      - name: Log in to GitHub Container Registry
+        env:
+          DOCKER_PASSWORD: ${{ secrets.NEW_DOCKER_REGISTRY_SECRET }}
+        run: |
+          docker login ghcr.io -u "mohamed3741" --password-stdin <<< "$DOCKER_PASSWORD"
+
+      - name: Check if Docker image exists
+        id: check_image
+        run: |
+          export IMGNAME=ghcr.io/mohamed3741/pro-backend && \
+          export IMGTAG=$(git ls-files -s . | git hash-object --stdin) && \
+          docker manifest inspect $IMGNAME:$IMGTAG > /dev/null || export exit_code=$? && \
+          echo exit_code=$exit_code >> $GITHUB_OUTPUT
+
+      - name: Restore gradle.properties
+      # only if image doesn't exist we rebuild
+        if: steps.check_image.outputs.exit_code != 0
+        env:
+          GRADLE_PROPERTIES: ${{ secrets.GRADLE_PROPERTIES }}
+        shell: bash
+        run: |
+          echo "${GRADLE_PROPERTIES}" > gradle.properties 
+          cat gradle.properties
+
+      - name: Build and Push Docker image
+        if: steps.check_image.outputs.exit_code != 0
+        run: |
+          export tag=$(git ls-files -s . | git hash-object --stdin) && \
+          docker build --tag ghcr.io/mohamed3741/pro-backend:$tag . && \
+          docker push ghcr.io/mohamed3741/pro-backend:$tag
+
+      - name: Image Build and Push Status
+        run: |
+          if [ "${{ steps.check_image.outputs.exit_code }}" == "0" ]; then
+            echo "Docker image already exists. No new image built or pushed."
+          else
+            echo "Docker image built and pushed successfully."
+          fi

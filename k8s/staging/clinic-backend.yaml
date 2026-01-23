@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clinic-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clinic-backend
+  template:
+    metadata:
+      labels:
+        app: clinic-backend
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      initContainers:
+        - name: check-db-ready
+          image: postgres:12
+          command: ['sh', '-c',
+                    'until pg_isready -h postgres-clinic -p 5432; do echo waiting for database; sleep 2; done;']
+      containers:
+        - name: clinic-backend
+          image: ghcr.io/mohamed3741/pro-backend:latest
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://postgres-clinic:5432/postgres
+            - name: SPRING_DATASOURCE_USERNAME
+              value: postgres
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: postgres
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: none
+            - name: SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA
+              value: public
+            - name: SERVER_PORT
+              value: "8080"
+            - name: KEYCLOAK_CLIENT_ID
+              value: clinic-client
+            - name: KEYCLOAK_CREDENTIALS_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: clinic-secrets
+                  key: KEYCLOAK_CLINIC_SECRET
+            - name: KEYCLOAK_AUTH_SERVER_URL
+              value: https://keycloak.digiwave-tech.com
+            - name: KEYCLOAK_REALM
+              value: clinic
+          ports:
+            - containerPort: 8080
+

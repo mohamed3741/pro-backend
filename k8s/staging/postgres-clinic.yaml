@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-clinic-statefulset
+  labels:
+    app: postgres-clinic
+spec:
+  serviceName: "postgres-clinic"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-clinic
+  template:
+    metadata:
+      labels:
+        app: postgres-clinic
+    spec:
+      containers:
+      - name: postgres-clinic
+        image: postgres:12
+        env:
+          - name: POSTGRES_USER
+            value: postgres
+          - name: PGUSER
+            value: postgres
+          - name: POSTGRES_DB
+            value: postgres
+          - name: PGDATA
+            value: /var/lib/postgresql/data/pgdata
+          - name: POSTGRES_PASSWORD
+            value: postgres
+          - name: REPLICATION_PASSWORD
+            value: postgres
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: status.podIP
+        ports:
+        - containerPort: 5432
+          name: postgres-db
+        volumeMounts:
+        - name: postgres-clinic-pvc
+          mountPath: /var/lib/postgresql/data
+
+        livenessProbe:
+          exec:
+            command:
+              - sh
+              - -c
+              - exec pg_isready --host $POD_IP
+          failureThreshold: 6
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        readinessProbe:
+          exec:
+            command:
+              - sh
+              - -c
+              - exec pg_isready --host $POD_IP
+          failureThreshold: 3
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
+
+      volumes:
+      - name: postgres-clinic-pvc
+        persistentVolumeClaim:
+          claimName: postgres-clinic-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-clinic
+  labels:
+    app: postgres-clinic
+spec:
+  ports:
+  - port: 5432
+    name: postgres-clinic
+  selector:
+    app: postgres-clinic
+

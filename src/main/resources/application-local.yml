@@ -1,0 +1,108 @@
+spring:
+  application:
+    name: Backend
+
+  datasource:
+    url: jdbc:postgresql://localhost:2222/postgres
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        default_schema: public
+        format_sql: true
+        show_sql: true
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+
+  security:
+    authorized:
+      uri:
+        pattern: >
+          /management/health,
+          /management/health/liveness,
+          /users/login,
+          /users/gen-googleauth-otp,
+          /users/verify-googleauth-otp/**,
+          /users/exchange-token,
+          /*/signup,
+          /*/*/signup,
+          /*/me,/*/*/me,
+          /users/check-code,
+          /*/check-code,
+          /*/generate-code/**,
+          /*/login-with-otp,
+          /*/set-phone-number/**,
+          /*/*/generate-code,
+          /*/*/set-phone-number/**,
+          /*/refresh-token,
+          /*/phone-verification/**,
+          /*/send-otp/**,
+          /*/*/send-otp/**,
+          /ws,
+          /sockjs,
+          /client/update-names,
+          /api/translations/**,
+          /*/reset-password
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            token-uri: ${keycloak.auth-server-url}/realms/${keycloak.realm}/protocol/openid-connect/token
+        registration:
+          keycloak:
+            authorization-grant-type: client_credentials
+            client-id: ${keycloak.client-id}
+            client-secret: ${keycloak.credentials.secret}
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${keycloak.auth-server-url}/realms/${keycloak.realm}/protocol/openid-connect/certs
+
+server:
+  port: 8188
+
+
+
+
+keycloak:
+  admin-client:
+    enabled: true
+  auth-server-url: https://keycloak.digiwave-tech.com
+  client-id: clinic-client
+  credentials:
+    secret: C0p0bl5VQ6yQObknp5X3bBU5wlqPz8no
+  realm: clinic
+
+cloudflare:
+  r2:
+    account-id: 250f855b13c83efc667e154dec28a5ed
+    bucket: Newadi
+    access-key: c63a1100c9f14ff6b2811089cabdf4f8
+    secret-key: e51e40389de18271998b756a0adfaf004ea6905dec4c4d8446f568758ad66e38
+    endpoint: https://250f855b13c83efc667e154dec28a5ed.r2.cloudflarestorage.com
+    public-url-base: https://media.Newadi.com
+    presign-expiry-seconds: 3600
+
+media-config:
+  mediaConfig:
+    token: _fsIIKt-msLB5S_HWIxtzpliNftMMHbF_BtHMdld
+    type: CDN
+    url: https://api.cloudflare.com/client/v4/accounts/250f855b13c83efc667e154dec28a5ed/images/v1
+    folder: pro
+
+config:
+  activate:
+    on-profile: local
+

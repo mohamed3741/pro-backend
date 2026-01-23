@@ -1,0 +1,141 @@
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 8000
+        timeout:
+          enabled: false
+      fallback:
+        enabled: true
+
+javamelody:
+  enabled: true
+  init-parameters:
+    log: true
+    storage-directory: '"./monitoring"'
+  spring-monitoring-enabled: true
+
+logging:
+  level:
+    com:
+      netflix:
+        hystrix: DEBUG
+      example: INFO
+    org:
+      hibernate:
+        SQL: ERROR
+
+ribbon:
+  ConnectTimeout: 60000
+  ReadTimeout: 60000
+  maxAutoRetries: 0
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      base-path: /management
+  server:
+    ssl:
+      enabled: false
+
+server:
+  port: 8184
+
+keycloak:
+  admin-client:
+    enabled: true
+  auth-server-url: https://keycloak.digiwave-tech.com
+  client-id: clinic-client
+  credentials:
+    secret: C0p0bl5VQ6yQObknp5X3bBU5wlqPz8no
+  realm: clinic
+
+spring:
+  application:
+    name: Backend
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        default_schema: public
+        format_sql: true
+        show_sql: true
+
+  main:
+    allow-bean-definition-overriding: true
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+
+  security:
+    authorized:
+      uri:
+        pattern: >
+          /management/health,
+          /management/health/liveness,
+          /users/login,
+          /users/gen-googleauth-otp,
+          /users/verify-googleauth-otp/**,
+          /users/exchange-token,
+          /*/signup,
+          /*/*/signup,
+          /*/me,/*/*/me,
+          /users/check-code,
+          /*/check-code,
+          /*/generate-code/**,
+          /*/login-with-otp,
+          /*/set-phone-number/**,
+          /*/*/generate-code,
+          /*/*/set-phone-number/**,
+          /*/refresh-token,
+          /*/phone-verification/**,
+          /*/send-otp/**,
+          /*/*/send-otp/**,
+          /ws,
+          /sockjs,
+          /client/update-names,
+          /api/translations/**,
+          /*/reset-password
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            token-uri: ${keycloak.auth-server-url}/realms/${keycloak.realm}/protocol/openid-connect/token
+        registration:
+          keycloak:
+            authorization-grant-type: client_credentials
+            client-id: ${keycloak.client-id}
+            client-secret: ${keycloak.credentials.secret}
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${keycloak.auth-server-url}/realms/${keycloak.realm}/protocol/openid-connect/certs
+
+
+cloudflare:
+  r2:
+    account-id: b39f601600bd1cefe5c24853fcc05fd1
+    bucket: media-marsadrive
+    access-key: ec6cbd847216633e1dcc0dafb964b9ea
+    secret-key: 9221a075cada17698bf5ee5775ea7225a959a9a3391f2563cd3be524b1ea5195
+    endpoint: https://b39f601600bd1cefe5c24853fcc05fd1.r2.cloudflarestorage.com
+    public-url-base: https://media.marsadrive.com
+    presign-expiry-seconds: 3600
+
+media-config:
+  mediaConfig:
+    token: _fsIIKt-msLB5S_HWIxtzpliNftMMHbF_BtHMdld
+    type: CDN
+    url: https://api.cloudflare.com/client/v4/accounts/250f855b13c83efc667e154dec28a5ed/images/v1
+    folder: pro
+
