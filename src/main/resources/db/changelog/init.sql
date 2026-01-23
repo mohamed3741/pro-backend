@@ -574,6 +574,28 @@ ALTER TABLE pro_notification
         FOREIGN KEY (notification_id) REFERENCES notification(id) ON DELETE CASCADE;
 
 --------------------------------------------------------------------------------
+-- App Config
+--------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS app_config_bundle (
+                                                 id            BIGINT PRIMARY KEY DEFAULT nextval('app_config_id_seq'),
+    app           VARCHAR(20) NOT NULL,
+    platform      VARCHAR(20) NOT NULL,
+    country       VARCHAR(2),
+    min_version   VARCHAR(20),
+    max_version   VARCHAR(20),
+    is_active     BOOLEAN DEFAULT TRUE,
+    config_json   JSONB,
+    created_at    TIMESTAMP,
+    updated_at    TIMESTAMP,
+    created_by    VARCHAR(255),
+    hash          VARCHAR(255),
+    description   TEXT
+    );
+
+CREATE INDEX IF NOT EXISTS idx_app_config_bundle_is_active ON app_config_bundle(is_active);
+CREATE INDEX IF NOT EXISTS idx_app_config_bundle_hash ON app_config_bundle(hash);
+
+--------------------------------------------------------------------------------
 -- Translations
 --------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS translation_values (
