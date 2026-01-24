@@ -16,24 +16,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final PushNotificationService pushNotificationService;
 
-    @Transactional
-    public void sendLeadOfferNotification(Pro pro, LeadOffer offer) {
-        Notification notification = createNotification(
-                NotificationType.NEW_LEAD_OFFER,
-                "New lead available",
-                "A new customer request is available in your area",
-                offer.getId(),
-                "LEAD_OFFER"
-        );
 
-        // Link to pro
-        // This would require a ProNotification entity save
-
-        // Send push notification
-        pushNotificationService.sendToPro(pro.getId(), notification);
-
-        log.info("Lead offer notification sent to pro: {}", pro.getId());
-    }
 
     @Transactional
     public void sendLeadAcceptedNotification(Pro pro, LeadAcceptance acceptance) {
