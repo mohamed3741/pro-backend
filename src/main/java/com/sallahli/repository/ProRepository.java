@@ -22,11 +22,11 @@ public interface ProRepository extends GenericRepository<Pro> {
     List<Pro> findByKycStatus(KycStatus kycStatus);
 
     @Query("SELECT p FROM Pro p WHERE p.online = true AND p.isActive = true AND p.kycStatus = 'APPROVED' " +
-           "AND p.walletBalanceMru >= :minBalance ORDER BY p.ratingAvg DESC, p.ratingCount DESC")
+           "AND p.walletBalance >= :minBalance ORDER BY p.ratingAvg DESC, p.ratingCount DESC")
     List<Pro> findAvailablePros(@Param("minBalance") Long minBalance);
 
     @Query("SELECT p FROM Pro p WHERE p.online = true AND p.isActive = true AND p.kycStatus = 'APPROVED' " +
-           "AND p.trade.id = :tradeId AND p.walletBalanceMru >= :minBalance " +
+           "AND p.trade.id = :tradeId AND p.walletBalance >= :minBalance " +
            "ORDER BY p.ratingAvg DESC, p.ratingCount DESC")
     List<Pro> findAvailableProsByTrade(@Param("tradeId") Long tradeId, @Param("minBalance") Long minBalance);
 

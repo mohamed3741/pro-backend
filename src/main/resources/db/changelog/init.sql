@@ -11,14 +11,13 @@ CREATE SEQUENCE IF NOT EXISTS client_id_seq START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE IF NOT EXISTS pro_id_seq START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE IF NOT EXISTS pro_wallet_tx_id_seq START WITH 1 INCREMENT BY 1;
 
-CREATE SEQUENCE IF NOT EXISTS service_category_id_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE IF NOT EXISTS category_id_seq START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE IF NOT EXISTS zone_id_seq START WITH 1 INCREMENT BY 1;
 
 CREATE SEQUENCE IF NOT EXISTS customer_request_id_seq START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE IF NOT EXISTS request_media_id_seq START WITH 1 INCREMENT BY 1;
 
 CREATE SEQUENCE IF NOT EXISTS lead_offer_id_seq START WITH 1 INCREMENT BY 1;
-CREATE SEQUENCE IF NOT EXISTS lead_acceptance_id_seq START WITH 1 INCREMENT BY 1;
 
 CREATE SEQUENCE IF NOT EXISTS job_id_seq START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE IF NOT EXISTS rating_id_seq START WITH 1 INCREMENT BY 1;
@@ -92,20 +91,24 @@ CREATE INDEX IF NOT EXISTS idx_client_tel ON client(tel);
 --------------------------------------------------------------------------------
 -- Addalli: Categories + Zones
 --------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS service_category (
-                                                id            BIGINT PRIMARY KEY DEFAULT nextval('service_category_id_seq'),
+CREATE TABLE IF NOT EXISTS category (
+                                                id            BIGINT PRIMARY KEY DEFAULT nextval('category_id_seq'),
     code          VARCHAR(50) NOT NULL,     -- PLUMBING/ELECTRICITY/HVAC
     name          VARCHAR(255) NOT NULL,
     description   TEXT,
     icon_media_id BIGINT,
+    lead_type     VARCHAR(20) DEFAULT 'FIXED',  -- FIXED or PERCENTAGE
+    lead_cost     NUMERIC(10,2),
+    match_limit   INTEGER DEFAULT 3,
     active        BOOLEAN DEFAULT TRUE,
     created_at    TIMESTAMP,
     updated_at    TIMESTAMP,
-    CONSTRAINT uq_service_category_code UNIQUE (code)
+    archived        BOOLEAN DEFAULT FALSE,
+    CONSTRAINT uq_category_code UNIQUE (code)
     );
 
-ALTER TABLE service_category
-    ADD CONSTRAINT fk_service_category_icon
+ALTER TABLE category
+    ADD CONSTRAINT fk_category_icon
         FOREIGN KEY (icon_media_id) REFERENCES media(id);
 
 CREATE TABLE IF NOT EXISTS zone (
@@ -146,8 +149,8 @@ CREATE TABLE IF NOT EXISTS pro (
     jobs_completed         BIGINT DEFAULT 0,
 
     -- Wallet (prepaid)
-    wallet_balance_mru     BIGINT DEFAULT 0,
-    low_balance_threshold_mru BIGINT DEFAULT 50,
+    wallet_balance     BIGINT DEFAULT 0,
+    low_balance_threshold BIGINT DEFAULT 50,
 
     is_active              BOOLEAN DEFAULT TRUE,
     is_deleted             BOOLEAN DEFAULT FALSE,
@@ -160,7 +163,7 @@ CREATE TABLE IF NOT EXISTS pro (
 
 ALTER TABLE pro
     ADD CONSTRAINT fk_pro_trade
-        FOREIGN KEY (trade_id) REFERENCES service_category(id);
+        FOREIGN KEY (trade_id) REFERENCES category(id);
 
 ALTER TABLE pro
     ADD CONSTRAINT fk_pro_base_zone
@@ -189,11 +192,11 @@ CREATE TABLE IF NOT EXISTS pro_wallet_transaction (
                                                       id                BIGINT PRIMARY KEY DEFAULT nextval('pro_wallet_tx_id_seq'),
     pro_id            BIGINT NOT NULL,
     type              VARCHAR(30) NOT NULL,   -- CREDIT/DEBIT/REFUND/ADJUSTMENT
-    amount_mru        BIGINT NOT NULL,
+    amount        BIGINT NOT NULL,
     reason            VARCHAR(100),           -- LEAD_PURCHASE / RECHARGE / FREE_LEADS / ...
     reference_type    VARCHAR(50),            -- REQUEST / LEAD / PAYMENT / ONLINE_TRANSACTION
     reference_id      BIGINT,
-    balance_after_mru BIGINT,
+    balance_after BIGINT,
     created_at        TIMESTAMP,
     updated_at        TIMESTAMP
     );
@@ -236,7 +239,7 @@ ALTER TABLE customer_request
 
 ALTER TABLE customer_request
     ADD CONSTRAINT fk_customer_request_category
-        FOREIGN KEY (category_id) REFERENCES service_category(id);
+        FOREIGN KEY (category_id) REFERENCES category(id);
 
 ALTER TABLE customer_request
     ADD CONSTRAINT fk_customer_request_voice_note
@@ -274,7 +277,7 @@ CREATE TABLE IF NOT EXISTS lead_offer (
     pro_id      BIGINT NOT NULL,
 
     distance_km NUMERIC(6,2),
-    price_mru   BIGINT NOT NULL DEFAULT 50,
+    price   BIGINT NOT NULL DEFAULT 50,
 
     status      VARCHAR(30) NOT NULL DEFAULT 'OFFERED', -- OFFERED/ACCEPTED/MISSED/EXPIRED/CANCELLED
     offered_at  TIMESTAMP,
@@ -298,39 +301,13 @@ CREATE INDEX IF NOT EXISTS idx_lead_offer_request_id ON lead_offer(request_id);
 CREATE INDEX IF NOT EXISTS idx_lead_offer_pro_id ON lead_offer(pro_id);
 CREATE INDEX IF NOT EXISTS idx_lead_offer_status ON lead_offer(status);
 
-CREATE TABLE IF NOT EXISTS lead_acceptance (
-                                               id            BIGINT PRIMARY KEY DEFAULT nextval('lead_acceptance_id_seq'),
-    lead_offer_id BIGINT NOT NULL,
-    request_id    BIGINT NOT NULL,
-    pro_id        BIGINT NOT NULL,
-    price_mru     BIGINT NOT NULL,
-    accepted_at   TIMESTAMP,
-    created_at    TIMESTAMP,
-    updated_at    TIMESTAMP,
-
-    CONSTRAINT uq_lead_acceptance_offer UNIQUE (lead_offer_id),
-    CONSTRAINT uq_lead_acceptance_request UNIQUE (request_id)
-    );
-
-ALTER TABLE lead_acceptance
-    ADD CONSTRAINT fk_lead_acceptance_offer
-        FOREIGN KEY (lead_offer_id) REFERENCES lead_offer(id) ON DELETE CASCADE;
-
-ALTER TABLE lead_acceptance
-    ADD CONSTRAINT fk_lead_acceptance_request
-        FOREIGN KEY (request_id) REFERENCES customer_request(id) ON DELETE CASCADE;
-
-ALTER TABLE lead_acceptance
-    ADD CONSTRAINT fk_lead_acceptance_pro
-        FOREIGN KEY (pro_id) REFERENCES pro(id) ON DELETE CASCADE;
-
 --------------------------------------------------------------------------------
 -- Job lifecycle
 --------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS job (
                                    id            BIGINT PRIMARY KEY DEFAULT nextval('job_id_seq'),
     request_id    BIGINT NOT NULL,
-    acceptance_id BIGINT NOT NULL,
+    lead_offer_id BIGINT NOT NULL,
     pro_id        BIGINT NOT NULL,
     client_id     BIGINT,
 
@@ -342,7 +319,7 @@ CREATE TABLE IF NOT EXISTS job (
     updated_at    TIMESTAMP,
 
     CONSTRAINT uq_job_request UNIQUE (request_id),
-    CONSTRAINT uq_job_acceptance UNIQUE (acceptance_id)
+    CONSTRAINT uq_job_lead_offer UNIQUE (lead_offer_id)
     );
 
 ALTER TABLE job
@@ -350,8 +327,8 @@ ALTER TABLE job
         FOREIGN KEY (request_id) REFERENCES customer_request(id) ON DELETE CASCADE;
 
 ALTER TABLE job
-    ADD CONSTRAINT fk_job_acceptance
-        FOREIGN KEY (acceptance_id) REFERENCES lead_acceptance(id) ON DELETE CASCADE;
+    ADD CONSTRAINT fk_job_lead_offer
+        FOREIGN KEY (lead_offer_id) REFERENCES lead_offer(id) ON DELETE CASCADE;
 
 ALTER TABLE job
     ADD CONSTRAINT fk_job_pro

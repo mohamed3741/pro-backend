@@ -33,9 +33,9 @@ public class LeadOffer extends HasTimestamps {
     @Column(precision = 6, scale = 2)
     private BigDecimal distanceKm;
 
-    @Column(nullable = false)
+    @Column(name = "price", nullable = false)
     @Builder.Default
-    private Long priceMru = 50L;
+    private Long price = 50L;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -16,7 +16,7 @@ public class JobDTO {
 
     private Long id;
     private CustomerRequestDTO request;
-    private LeadAcceptanceDTO acceptance;
+    private LeadOfferDTO leadOffer;
     private ProDTO pro;
     private ClientDTO client;
     private JobStatus status;

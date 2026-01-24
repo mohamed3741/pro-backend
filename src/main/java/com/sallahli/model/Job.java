@@ -26,8 +26,8 @@ public class Job extends HasTimestamps implements Archivable {
     private CustomerRequest request;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "acceptance_id", nullable = false, unique = true)
-    private LeadAcceptance acceptance;
+    @JoinColumn(name = "lead_offer_id", nullable = false, unique = true)
+    private LeadOffer leadOffer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pro_id", nullable = false)

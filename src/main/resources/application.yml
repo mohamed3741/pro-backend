@@ -139,3 +139,6 @@ media-config:
     url: https://api.cloudflare.com/client/v4/accounts/250f855b13c83efc667e154dec28a5ed/images/v1
     folder: pro
 
+whatsapp:
+  bearer-token: ${WHATSAPP_BEARER_TOKEN:your-bearer-token-here}
+

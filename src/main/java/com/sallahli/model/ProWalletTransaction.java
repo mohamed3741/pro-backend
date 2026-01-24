@@ -27,15 +27,15 @@ public class ProWalletTransaction extends HasTimestamps {
     @Column(nullable = false)
     private WalletTransactionType type;
 
-    @Column(nullable = false)
-    private Long amountMru;
+    @Column(name = "amount", nullable = false)
+    private Long amount;
 
     private String reason; // LEAD_PURCHASE, RECHARGE, FREE_LEADS, etc.
 
     private String referenceType; // REQUEST, LEAD, PAYMENT, ONLINE_TRANSACTION
     private Long referenceId;
 
-    @Column(nullable = false)
-    private Long balanceAfterMru;
+    @Column(name = "balance_after", nullable = false)
+    private Long balanceAfter;
 }
 

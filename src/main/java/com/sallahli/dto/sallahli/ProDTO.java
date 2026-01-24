@@ -18,7 +18,7 @@ public class ProDTO {
     private String tel;
     private String fullName;
     private String email;
-    private ServiceCategoryDTO trade;
+    private CategoryDTO trade;
     private ZoneDTO baseZone;
 
     // KYC fields
@@ -36,8 +36,8 @@ public class ProDTO {
     private Long jobsCompleted;
 
     // Wallet fields
-    private Long walletBalanceMru;
-    private Long lowBalanceThresholdMru;
+    private Long walletBalance;
+    private Long lowBalanceThreshold;
 
     private Boolean isActive;
     private Boolean isDeleted;

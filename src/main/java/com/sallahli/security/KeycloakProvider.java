@@ -1,9 +1,9 @@
 package com.sallahli.security;
 
+import ae.lambdabeta.common.security.constant.LoginProvider;
+import ae.lambdabeta.common.security.constant.RefreshTokenDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sallahli.security.constant.LoginProvider;
-import com.sallahli.security.constant.RefreshTokenDto;
 import kong.unirest.Unirest;
 import lombok.Getter;
 import org.keycloak.OAuth2Constants;
@@ -109,7 +109,5 @@ public class KeycloakProvider {
         return mapper.readValue(response, AccessTokenResponse.class);
     }
 }
-
-
 
 

@@ -3,8 +3,10 @@ package com.sallahli.model;
 import com.sallahli.utils.HasTimestamps;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "client")
@@ -71,5 +73,13 @@ public class Client extends HasTimestamps implements Archivable {
     private Long referralCounter = 0L;
 
     private String loginProvider;
+
+    @ManyToMany
+    @JoinTable(
+            name = "client_address_relation",
+            joinColumns = @JoinColumn(name = "client_id"),
+            inverseJoinColumns = @JoinColumn(name = "address_id"))
+    @Where(clause = "archived = false")
+    private List<Address> addresses;
 }
 
