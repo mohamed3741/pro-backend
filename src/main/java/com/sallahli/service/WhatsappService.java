@@ -2,6 +2,7 @@ package com.sallahli.service;
 
 import kong.unirest.json.JSONObject;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -27,15 +28,21 @@ public class WhatsappService {
 
     private static final long DEFAULT_BULK_DELAY_SECONDS = 10;
 
+    @Value("${whatsapp.bearer-token}")
+    private String bearerToken;
+
     private final HttpClient http = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
             .build();
 
-
-    public void sendText(String to, String message, String bearerToken) {
+    /**
+     * Send a text message via WhatsApp
+     * @param to Recipient phone number
+     * @param message Message text to send
+     */
+    public void sendText(String to, String message) {
         Objects.requireNonNull(to, "to must not be null");
         Objects.requireNonNull(message, "message must not be null");
-        Objects.requireNonNull(bearerToken, "bearerToken must not be null");
 
         JSONObject payload = new JSONObject()
                 .put("to", to)
@@ -44,17 +51,42 @@ public class WhatsappService {
         sendJson(INSTANCE_URL + SEND_MESSAGE_PATH, payload, bearerToken);
     }
 
-    public void sendTextToGroup(String groupJid, String message, String bearerToken) {
-        sendText(groupJid, message, bearerToken);
+    /**
+     * Send OTP verification code via WhatsApp
+     * @param code Verification code
+     * @param phoneNumber Recipient phone number
+     */
+    public void sendOTP(String code, String phoneNumber) {
+        Objects.requireNonNull(code, "code must not be null");
+        Objects.requireNonNull(phoneNumber, "phoneNumber must not be null");
+        
+        String message = "Your Almersoul verification code is: " + code;
+        sendText(phoneNumber, message);
+    }
+
+    /**
+     * Send temporary password via WhatsApp
+     * @param temporaryPassword Temporary password
+     * @param phoneNumber Recipient phone number
+     */
+    public void sendTmpPassword(String temporaryPassword, String phoneNumber) {
+        Objects.requireNonNull(temporaryPassword, "temporaryPassword must not be null");
+        Objects.requireNonNull(phoneNumber, "phoneNumber must not be null");
+        
+        String message = "Your Almersoul temporary password is: " + temporaryPassword + "\n\nPlease change this password after login.";
+        sendText(phoneNumber, message);
+    }
+
+    public void sendTextToGroup(String groupJid, String message) {
+        sendText(groupJid, message);
     }
 
 
     public void sendDocument(String to,
                              String base64File,
                              String fileName,
-                             String caption,
-                             String bearerToken) {
-        sendDocumentWithMime(to, base64File, fileName, caption, "application/pdf", bearerToken);
+                             String caption) {
+        sendDocumentWithMime(to, base64File, fileName, caption, "application/pdf");
     }
 
 
@@ -62,17 +94,15 @@ public class WhatsappService {
                                      String base64File,
                                      String fileName,
                                      String caption,
-                                     String mimeType,
-                                     String bearerToken) {
+                                     String mimeType) {
         Objects.requireNonNull(to, "to must not be null");
         Objects.requireNonNull(base64File, "base64File must not be null");
         Objects.requireNonNull(fileName, "fileName must not be null");
         Objects.requireNonNull(mimeType, "mimeType must not be null");
-        Objects.requireNonNull(bearerToken, "bearerToken must not be null");
 
         String dataUri = buildDataUri(base64File, mimeType);
 
-        String publicUrl = uploadPublicUrl(dataUri, bearerToken);
+        String publicUrl = uploadPublicUrl(dataUri);
 
         String safeFileName = ensureExtension(fileName, mimeType);
 
@@ -88,7 +118,6 @@ public class WhatsappService {
 
     public int sendBulkText(Collection<String> recipients,
                             String message,
-                            String bearerToken,
                             Long delaySeconds) {
         if (recipients == null || recipients.isEmpty()) return 0;
         long sleep = delaySeconds != null ? Math.max(0, delaySeconds) : DEFAULT_BULK_DELAY_SECONDS;
@@ -97,7 +126,7 @@ public class WhatsappService {
         int i = 0;
         for (String to : recipients) {
             try {
-                sendText(to, message, bearerToken);
+                sendText(to, message);
                 success++;
             } catch (Exception ex) {
                 log.warn("WhatsApp text failed for {}: {}", to, ex.toString());
@@ -112,7 +141,6 @@ public class WhatsappService {
                                 String base64File,
                                 String fileName,
                                 String caption,
-                                String bearerToken,
                                 Long delaySeconds) {
         if (recipients == null || recipients.isEmpty()) return 0;
         long sleep = delaySeconds != null ? Math.max(0, delaySeconds) : DEFAULT_BULK_DELAY_SECONDS;
@@ -121,7 +149,7 @@ public class WhatsappService {
         int i = 0;
         for (String to : recipients) {
             try {
-                sendDocument(to, base64File, fileName, caption, bearerToken);
+                sendDocument(to, base64File, fileName, caption);
                 success++;
             } catch (Exception ex) {
                 log.warn("WhatsApp doc failed for {}: {}", to, ex.toString());
@@ -134,9 +162,8 @@ public class WhatsappService {
     @Async
     public void sendBulkTextAsync(Collection<String> recipients,
                                   String message,
-                                  String bearerToken,
                                   Long delaySeconds) {
-        sendBulkText(recipients, message, bearerToken, delaySeconds);
+        sendBulkText(recipients, message, delaySeconds);
     }
 
     @Async
@@ -144,12 +171,13 @@ public class WhatsappService {
                                       String base64File,
                                       String fileName,
                                       String caption,
-                                      String bearerToken,
                                       Long delaySeconds) {
-        sendBulkDocument(recipients, base64File, fileName, caption, bearerToken, delaySeconds);
+        sendBulkDocument(recipients, base64File, fileName, caption, delaySeconds);
     }
 
-    public String uploadPublicUrl(String dataUriBase64, String bearerToken) {
+    public String uploadPublicUrl(String dataUriBase64) {
+        Objects.requireNonNull(dataUriBase64, "dataUriBase64 must not be null");
+        
         JSONObject payload = new JSONObject().put("base64", dataUriBase64);
 
         HttpRequest req = HttpRequest.newBuilder()

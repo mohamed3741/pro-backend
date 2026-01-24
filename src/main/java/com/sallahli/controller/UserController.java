@@ -146,26 +146,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@RequestBody UserDTO userDTO) {
-        try {
-            if (StringUtils.isEmpty(userDTO.getUsername())) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Collections.singletonMap("message", "Username is required"));
-            }
 
-            userService.forgetPassword(userDTO.getUsername());
-            return ResponseEntity.ok()
-                    .body(Collections.singletonMap("message", "Password reset email sent successfully"));
-        } catch (BadRequestException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Collections.singletonMap("message", e.getMessage()));
-        } catch (Exception e) {
-            log.error("Error during forgot password for user: " + userDTO.getUsername(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Collections.singletonMap("message", "Error sending password reset email"));
-        }
-    }
 
     @PutMapping("/update")
     public ResponseEntity<?> updateUser(@RequestBody UserDTO userDTO, Authentication authentication) {

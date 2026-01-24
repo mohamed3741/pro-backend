@@ -42,6 +42,10 @@ public class CustomerRequest extends HasTimestamps implements Archivable {
 
     private String landmark;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "address_id")
+    private Address address;
+
     // Request details
     @Column(columnDefinition = "TEXT")
     private String descriptionText;

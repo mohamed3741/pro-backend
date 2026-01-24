@@ -44,4 +44,7 @@ public class UserDTO extends HasTimestampsDTO {
     private String lastName;
     
     private String password;
+
+    private String provider;
+
 }
