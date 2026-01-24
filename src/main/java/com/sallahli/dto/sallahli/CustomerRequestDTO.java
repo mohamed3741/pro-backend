@@ -1,5 +1,6 @@
 package com.sallahli.dto.sallahli;
 
+import com.sallahli.dto.MediaDTO;
 import com.sallahli.model.Enum.RequestStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +19,7 @@ public class CustomerRequestDTO {
 
     private Long id;
     private ClientDTO client;
-    private ServiceCategoryDTO category;
+    private CategoryDTO category;
 
     // Location
     private BigDecimal latitude;

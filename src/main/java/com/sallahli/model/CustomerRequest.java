@@ -28,7 +28,7 @@ public class CustomerRequest extends HasTimestamps implements Archivable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
-    private ServiceCategory category;
+    private Category category;
 
     // Location
     @Column(precision = 10, scale = 7)

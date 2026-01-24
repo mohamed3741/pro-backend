@@ -1,21 +1,28 @@
 package com.sallahli.dto.sallahli;
 
+import com.sallahli.dto.MediaDTO;
+import com.sallahli.model.Enum.LeadType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ServiceCategoryDTO {
+public class CategoryDTO {
 
     private Long id;
     private String code;
     private String name;
     private String description;
     private MediaDTO iconMedia;
+    private LeadType leadType;
+    private BigDecimal leadCost;
+    private Integer matchLimit;
     private Boolean active;
 }
 

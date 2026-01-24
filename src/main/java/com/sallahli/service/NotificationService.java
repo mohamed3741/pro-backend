@@ -19,25 +19,25 @@ public class NotificationService {
 
 
     @Transactional
-    public void sendLeadAcceptedNotification(Pro pro, LeadAcceptance acceptance) {
+    public void sendLeadAcceptedNotification(Pro pro, LeadOffer leadOffer) {
         Notification notification = createNotification(
                 NotificationType.LEAD_ACCEPTED,
                 "Lead Accepted",
                 "You have successfully accepted a lead",
-                acceptance.getId(),
-                "LEAD_ACCEPTANCE"
+                leadOffer.getId(),
+                "LEAD_OFFER"
         );
 
         pushNotificationService.sendToPro(pro.getId(), notification);
     }
 
     @Transactional
-    public void sendRequestAssignedNotification(Client client, LeadAcceptance acceptance) {
+    public void sendRequestAssignedNotification(Client client, LeadOffer leadOffer) {
         Notification notification = createNotification(
                 NotificationType.CLIENT_REQUEST_UPDATED,
                 "Request Assigned",
                 "A professional has been assigned to your request",
-                acceptance.getRequest().getId(),
+                leadOffer.getRequest().getId(),
                 "CUSTOMER_REQUEST"
         );
 

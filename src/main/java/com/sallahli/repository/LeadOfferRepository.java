@@ -28,7 +28,7 @@ public interface LeadOfferRepository extends GenericRepository<LeadOffer> {
     @Query("SELECT COUNT(lo) FROM LeadOffer lo WHERE lo.pro.id = :proId AND lo.status = 'ACCEPTED' AND lo.createdAt BETWEEN :startDate AND :endDate")
     Long countAcceptedOffersByProInDateRange(@Param("proId") Long proId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
-    @Query("SELECT AVG(lo.priceMru) FROM LeadOffer lo WHERE lo.status = 'ACCEPTED' AND lo.createdAt BETWEEN :startDate AND :endDate")
+    @Query("SELECT AVG(lo.price) FROM LeadOffer lo WHERE lo.status = 'ACCEPTED' AND lo.createdAt BETWEEN :startDate AND :endDate")
     Double getAverageAcceptedPriceInDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }
 

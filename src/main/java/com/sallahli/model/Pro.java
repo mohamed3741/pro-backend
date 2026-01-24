@@ -29,7 +29,7 @@ public class Pro extends HasTimestamps implements Archivable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trade_id", nullable = false)
-    private ServiceCategory trade;
+    private Category trade;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "base_zone_id")
@@ -71,11 +71,13 @@ public class Pro extends HasTimestamps implements Archivable {
     private Long jobsCompleted = 0L;
 
     // Wallet fields (prepaid)
+    @Column(name = "wallet_balance")
     @Builder.Default
-    private Long walletBalanceMru = 0L;
+    private Long walletBalance = 0L;
 
+    @Column(name = "low_balance_threshold")
     @Builder.Default
-    private Long lowBalanceThresholdMru = 50L;
+    private Long lowBalanceThreshold = 50L;
 
     @Builder.Default
     private Boolean isActive = true;

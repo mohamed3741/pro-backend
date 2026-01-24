@@ -23,10 +23,10 @@ public interface ProWalletTransactionRepository extends GenericRepository<ProWal
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
 
-    @Query("SELECT SUM(t.amountMru) FROM ProWalletTransaction t WHERE t.pro.id = :proId AND t.type = 'CREDIT'")
+    @Query("SELECT SUM(t.amount) FROM ProWalletTransaction t WHERE t.pro.id = :proId AND t.type = 'CREDIT'")
     Long getTotalCreditsByProId(@Param("proId") Long proId);
 
-    @Query("SELECT SUM(t.amountMru) FROM ProWalletTransaction t WHERE t.pro.id = :proId AND t.type = 'DEBIT'")
+    @Query("SELECT SUM(t.amount) FROM ProWalletTransaction t WHERE t.pro.id = :proId AND t.type = 'DEBIT'")
     Long getTotalDebitsByProId(@Param("proId") Long proId);
 }
 

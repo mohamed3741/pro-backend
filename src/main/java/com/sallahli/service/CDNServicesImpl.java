@@ -57,7 +57,7 @@ public class CDNServicesImpl {
         String thumbnail = null;
         String link = null;
         if (cdnMedia != null && cdnMedia.getResult() != null && cdnMedia.getResult().getVariants() != null) {
-            if (cdnMedia.getResult().getVariants().size() > 0) {
+            if (!cdnMedia.getResult().getVariants().isEmpty()) {
                 thumbnail = cdnMedia.getResult().getVariants().get(0);
             }
             if (cdnMedia.getResult().getVariants().size() > 1) {
@@ -177,9 +177,128 @@ public class CDNServicesImpl {
     private record ImageDimensions(int width, int height, float quality) {
     }
 
+    /**
+     * Delete a file from the CDN
+     *
+     * @param keyName The key name (filename) of the file to delete
+     */
     public void deleteFile(String keyName) {
-        // TODO: Implement CDN file deletion if needed
-        log.info("Delete file from CDN not implemented yet for keyName: {}", keyName);
+        if (keyName == null || keyName.trim().isEmpty()) {
+            log.warn("Cannot delete file: keyName is null or empty");
+            return;
+        }
+
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders requestHeaders = new HttpHeaders();
+            
+            // Set Bearer token for authentication (same as upload)
+            String token = properties.getMediaConfig().getToken().trim();
+            requestHeaders.setBearerAuth(token);
+            requestHeaders.setContentType(MediaType.APPLICATION_JSON);
+
+            // Construct delete URL based on upload URL pattern
+            String baseUrl = properties.getMediaConfig().getUrl();
+            String deleteUrl = buildDeleteUrl(baseUrl, keyName);
+
+            // Prepare request body with keyName
+            MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+            body.add("keyName", keyName);
+
+            HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(body, requestHeaders);
+
+            // Try DELETE method first (most common for file deletion APIs)
+            try {
+                ResponseEntity<String> response = restTemplate.exchange(
+                        deleteUrl,
+                        HttpMethod.DELETE,
+                        requestEntity,
+                        String.class
+                );
+
+                if (response.getStatusCode().is2xxSuccessful()) {
+                    log.info("Successfully deleted file from CDN: {}", keyName);
+                    return;
+                } else {
+                    log.warn("Failed to delete file from CDN using DELETE. Status: {}, keyName: {}", 
+                            response.getStatusCode(), keyName);
+                }
+            } catch (org.springframework.web.client.HttpClientErrorException | 
+                     org.springframework.web.client.HttpServerErrorException e) {
+                // If DELETE fails with HTTP error, try POST method (some CDN APIs use POST for deletion)
+                log.debug("DELETE method failed with status {}, trying POST method: {}", 
+                        e.getStatusCode(), e.getMessage());
+                
+                // Prepare POST request with delete action
+                body.clear();
+                body.add("keyName", keyName);
+                body.add("action", "delete");
+                
+                HttpEntity<MultiValueMap<String, String>> postRequestEntity = 
+                        new HttpEntity<>(body, requestHeaders);
+                
+                try {
+                    ResponseEntity<String> response = restTemplate.exchange(
+                            deleteUrl,
+                            HttpMethod.POST,
+                            postRequestEntity,
+                            String.class
+                    );
+
+                    if (response.getStatusCode().is2xxSuccessful()) {
+                        log.info("Successfully deleted file from CDN using POST: {}", keyName);
+                    } else {
+                        log.warn("Failed to delete file from CDN using POST. Status: {}, keyName: {}", 
+                                response.getStatusCode(), keyName);
+                    }
+                } catch (Exception postException) {
+                    log.error("Both DELETE and POST methods failed for file deletion. keyName: {}, error: {}", 
+                            keyName, postException.getMessage());
+                }
+            }
+
+        } catch (Exception e) {
+            // Log error but don't throw - allow the application to continue
+            // This matches the behavior in MediaService.cleanMediaDelete which catches exceptions
+            log.error("Error deleting file from CDN. keyName: {}, error: {}", keyName, e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Build the delete URL based on the upload URL pattern
+     * 
+     * @param baseUrl The base upload URL from configuration
+     * @param keyName The file key name to delete
+     * @return The constructed delete URL
+     */
+    private String buildDeleteUrl(String baseUrl, String keyName) {
+        if (baseUrl == null || baseUrl.trim().isEmpty()) {
+            throw new IllegalArgumentException("Base URL cannot be null or empty");
+        }
+
+        // Common CDN API patterns:
+        // 1. /upload -> /delete
+        // 2. /upload -> /delete/{keyName}
+        // 3. Base URL + /delete
+        // 4. Base URL + /delete/{keyName}
+        
+        String deleteUrl = baseUrl.trim();
+        
+        // Replace /upload with /delete if present
+        if (deleteUrl.contains("/upload")) {
+            deleteUrl = deleteUrl.replace("/upload", "/delete");
+        } else {
+            // Append /delete if not present
+            if (!deleteUrl.endsWith("/delete") && !deleteUrl.endsWith("/delete/")) {
+                deleteUrl = deleteUrl.endsWith("/") ? deleteUrl + "delete" : deleteUrl + "/delete";
+            }
+        }
+        
+        // Some APIs require keyName as path parameter: /delete/{keyName}
+        // Uncomment the line below if your CDN API requires this pattern:
+        // deleteUrl = deleteUrl.endsWith("/") ? deleteUrl + keyName : deleteUrl + "/" + keyName;
+        
+        return deleteUrl;
     }
 }
 
