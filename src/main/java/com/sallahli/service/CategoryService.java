@@ -3,13 +3,11 @@ package com.sallahli.service;
 import com.sallahli.dto.sallahli.CategoryDTO;
 import com.sallahli.exceptions.NotFoundException;
 import com.sallahli.mapper.CategoryMapper;
-import com.sallahli.mapper.Mapper;
 import com.sallahli.model.Category;
 import com.sallahli.model.Media;
 import com.sallahli.repository.CategoryRepository;
 import com.sallahli.repository.MediaRepository;
 import com.sallahli.service.crud.AbstractCrudService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,13 +17,19 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class CategoryService extends AbstractCrudService<Category, CategoryDTO> {
 
     private final CategoryRepository categoryRepository;
     private final MediaRepository mediaRepository;
     private final CategoryMapper categoryMapper;
+
+    public CategoryService(CategoryRepository categoryRepository, CategoryMapper categoryMapper, MediaRepository mediaRepository) {
+        super(categoryRepository, categoryMapper);
+        this.categoryRepository = categoryRepository;
+        this.categoryMapper = categoryMapper;
+        this.mediaRepository = mediaRepository;
+    }
 
 
 
@@ -36,7 +40,7 @@ public class CategoryService extends AbstractCrudService<Category, CategoryDTO> 
     @Override
     @Transactional(readOnly = true)
     public List<CategoryDTO> findAll() {
-        return getMapper().toDtos(categoryRepository.findAllByArchivedFalseOrderByNameAsc());
+        return categoryMapper.toDtos(categoryRepository.findAllByArchivedFalseOrderByNameAsc());
     }
 
     @Override
@@ -44,7 +48,7 @@ public class CategoryService extends AbstractCrudService<Category, CategoryDTO> 
     public CategoryDTO findById(Long id) {
         Category category = categoryRepository.findByIdAndArchivedFalse(id)
                 .orElseThrow(() -> new NotFoundException("Category not found with id: " + id));
-        return getMapper().toDto(category);
+        return categoryMapper.toDto(category);
     }
 
     /**
@@ -54,7 +58,6 @@ public class CategoryService extends AbstractCrudService<Category, CategoryDTO> 
     protected void applyRelationships(Category entity, CategoryDTO dto) {
         if (dto == null) return;
 
-        // iconMedia relationship
         if (dto.getIconMedia() != null && dto.getIconMedia().getId() != null) {
             Long mediaId = dto.getIconMedia().getId();
             Media media = mediaRepository.findById(mediaId)
@@ -65,9 +68,7 @@ public class CategoryService extends AbstractCrudService<Category, CategoryDTO> 
         }
     }
 
-    /**
-     * Validation + normalization before save.
-     */
+
     @Override
     protected void beforePersist(Category entity, CategoryDTO dto, boolean isNew) {
         // normalize code
