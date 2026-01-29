@@ -44,7 +44,6 @@ public class JobService extends AbstractCrudService<Job, JobDTO> {
     // Job Creation
     // ========================================================================
 
-    
     @Transactional
     public JobDTO createJobFromLeadOffer(LeadOffer leadOffer) {
         CustomerRequest request = leadOffer.getRequest();
@@ -75,10 +74,9 @@ public class JobService extends AbstractCrudService<Job, JobDTO> {
     // Job Lifecycle
     // ========================================================================
 
-    
     @Transactional
     public JobDTO completeJob(Long jobId) {
-        Job job = findJobById(jobId);
+        Job job = getJobById(jobId);
 
         if (job.getStatus() != JobStatus.IN_PROGRESS) {
             throw new BadRequestException("Job must be IN_PROGRESS to complete. Current: " + job.getStatus());
@@ -99,10 +97,9 @@ public class JobService extends AbstractCrudService<Job, JobDTO> {
         return getMapper().toDto(saved);
     }
 
-    
     @Transactional
     public JobDTO cancelJob(Long jobId, String reason) {
-        Job job = findJobById(jobId);
+        Job job = getJobById(jobId);
 
         if (job.getStatus() == JobStatus.DONE) {
             throw new BadRequestException("Cannot cancel a completed job");
@@ -116,10 +113,9 @@ public class JobService extends AbstractCrudService<Job, JobDTO> {
         return getMapper().toDto(saved);
     }
 
-    
     @Transactional
     public JobDTO markNoShow(Long jobId) {
-        Job job = findJobById(jobId);
+        Job job = getJobById(jobId);
 
         if (job.getStatus() != JobStatus.IN_PROGRESS) {
             throw new BadRequestException("Job must be IN_PROGRESS to mark as no-show. Current: " + job.getStatus());
@@ -137,35 +133,30 @@ public class JobService extends AbstractCrudService<Job, JobDTO> {
     // Query Methods
     // ========================================================================
 
-    
     @Transactional(readOnly = true)
     public List<JobDTO> findByProId(Long proId) {
         List<Job> jobs = jobRepository.findByProIdOrderByCreatedAtDesc(proId);
         return getMapper().toDtos(jobs);
     }
 
-    
     @Transactional(readOnly = true)
     public List<JobDTO> findByClientId(Long clientId) {
         List<Job> jobs = jobRepository.findByClientIdOrderByCreatedAtDesc(clientId);
         return getMapper().toDtos(jobs);
     }
 
-    
     @Transactional(readOnly = true)
     public List<JobDTO> findByStatus(JobStatus status) {
         List<Job> jobs = jobRepository.findByStatus(status);
         return getMapper().toDtos(jobs);
     }
 
-    
     @Transactional(readOnly = true)
     public List<JobDTO> findActiveJobsByProId(Long proId) {
         List<Job> jobs = jobRepository.findByProIdAndStatus(proId, JobStatus.IN_PROGRESS);
         return getMapper().toDtos(jobs);
     }
 
-    
     @Transactional(readOnly = true)
     public List<JobDTO> findCompletedJobsInDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         List<Job> jobs = jobRepository.findCompletedJobsInDateRange(startDate, endDate);
@@ -176,20 +167,17 @@ public class JobService extends AbstractCrudService<Job, JobDTO> {
     // Statistics
     // ========================================================================
 
-    
     @Transactional(readOnly = true)
     public Long countCompletedJobsByPro(Long proId) {
         return jobRepository.countCompletedJobsByPro(proId);
     }
 
-    
     @Transactional(readOnly = true)
     public Double getAverageRatingByPro(Long proId) {
         Double avg = jobRepository.getAverageRatingByPro(proId);
         return avg != null ? avg : 5.0;
     }
 
-    
     @Transactional
     protected void updateProStatistics(Long proId) {
         Pro pro = proRepository.findById(proId)
@@ -211,7 +199,7 @@ public class JobService extends AbstractCrudService<Job, JobDTO> {
     // Helper methods
     // ========================================================================
 
-    private Job findJobById(Long id) {
+    public Job getJobById(Long id) {
         return jobRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Job not found with id: " + id));
     }

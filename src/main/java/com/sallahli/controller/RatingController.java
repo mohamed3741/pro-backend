@@ -13,7 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/ratings")
+@RequestMapping("/rating")
 @RequiredArgsConstructor
 @Tag(name = "Rating", description = "Rating management APIs")
 public class RatingController {
@@ -21,11 +21,11 @@ public class RatingController {
     private final RatingService ratingService;
     private final JobService jobService;
 
-    @PostMapping("/job/{jobId}")
+    @PostMapping("/job/{jobId}/create")
     @PreAuthorize("hasAnyAuthority('CLIENT', 'PRO')")
     @Operation(summary = "Submit a rating for a job")
     public ResponseEntity<Rating> createRating(@PathVariable Long jobId, @RequestBody RatingSubmissionRequest request) {
-        Job job = jobService.getEntityById(jobId);
+        Job job = jobService.getJobById(jobId);
         return ResponseEntity.ok(ratingService.createRating(job, request));
     }
 
