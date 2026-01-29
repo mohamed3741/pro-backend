@@ -1,5 +1,6 @@
 package com.sallahli.dto.sallahli;
 
+import com.sallahli.dto.MediaDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

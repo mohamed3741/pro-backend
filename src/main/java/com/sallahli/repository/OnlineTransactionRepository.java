@@ -5,7 +5,7 @@ import com.sallahli.repository.generic.GenericRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface OnlineTransactionRepository extends GenericRepository<OnlineTransaction, Long> {
+public interface OnlineTransactionRepository extends GenericRepository<OnlineTransaction> {
 
     OnlineTransaction findByOperationId(String operationId);
 }

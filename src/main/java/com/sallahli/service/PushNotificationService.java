@@ -2,7 +2,6 @@ package com.sallahli.service;
 
 import com.eatthepath.pushy.apns.ApnsClient;
 import com.eatthepath.pushy.apns.PushNotificationResponse;
-import com.eatthepath.pushy.apns.util.ApnsPayloadBuilder;
 import com.eatthepath.pushy.apns.util.SimpleApnsPushNotification;
 import com.google.firebase.messaging.*;
 import com.sallahli.config.ApnsConfig;
@@ -154,27 +153,35 @@ public class PushNotificationService {
         }
 
         try {
-            final ApnsPayloadBuilder payloadBuilder = new ApnsPayloadBuilder();
-            payloadBuilder.setAlertTitle(notification.getTitle());
-            payloadBuilder.setAlertBody(notification.getContent());
-            payloadBuilder.setBadge(1);
-            payloadBuilder.setSound("default");
+            // Manually build JSON payload to avoid ApnsPayloadBuilder compatibility issues
+            Map<String, Object> aps = new HashMap<>();
+            Map<String, Object> alert = new HashMap<>();
+            alert.put("title", notification.getTitle());
+            alert.put("body", notification.getContent());
+
+            aps.put("alert", alert);
+            aps.put("badge", 1);
+            aps.put("sound", "default");
+
+            Map<String, Object> payloadMap = new HashMap<>();
+            payloadMap.put("aps", aps);
 
             // Add custom data
             if (notification.getId() != null) {
-                payloadBuilder.addCustomProperty("notificationId", notification.getId());
+                payloadMap.put("notificationId", notification.getId());
             }
             if (notification.getType() != null) {
-                payloadBuilder.addCustomProperty("type", notification.getType().name());
+                payloadMap.put("type", notification.getType().name());
             }
             if (notification.getBusinessId() != null) {
-                payloadBuilder.addCustomProperty("businessId", notification.getBusinessId());
+                payloadMap.put("businessId", notification.getBusinessId());
             }
             if (notification.getServedApp() != null) {
-                payloadBuilder.addCustomProperty("servedApp", notification.getServedApp());
+                payloadMap.put("servedApp", notification.getServedApp());
             }
 
-            final String payload = payloadBuilder.build();
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            final String payload = mapper.writeValueAsString(payloadMap);
             final String token = device.getToken();
 
             SimpleApnsPushNotification pushNotification = new SimpleApnsPushNotification(
@@ -199,7 +206,7 @@ public class PushNotificationService {
         } catch (InterruptedException e) {
             log.error("APNs send interrupted for device: {}", truncateToken(device.getToken()));
             Thread.currentThread().interrupt();
-        } catch (ExecutionException e) {
+        } catch (ExecutionException | com.fasterxml.jackson.core.JsonProcessingException e) {
             log.error("APNs send failed for device {}: {}", truncateToken(device.getToken()), e.getMessage());
         }
     }

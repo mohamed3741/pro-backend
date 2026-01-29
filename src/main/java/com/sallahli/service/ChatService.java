@@ -1,20 +1,27 @@
 package com.sallahli.service;
 
-import com.sallahli.dto.chat.*;
+import com.sallahli.dto.chat.ConversationByParticipantRequest;
+import com.sallahli.dto.chat.ConversationDto;
+import com.sallahli.dto.chat.ConversationParticipantDto;
+import com.sallahli.dto.chat.MessageDto;
 import com.sallahli.dto.search.PaginatedSearchService;
 import com.sallahli.mapper.ConversationMapper;
 import com.sallahli.mapper.ConversationParticipantsMapper;
 import com.sallahli.mapper.MessageMapper;
-import com.sallahli.model.*;
-import com.sallahli.model.Enum.*;
+import com.sallahli.model.Conversation;
+import com.sallahli.model.ConversationParticipant;
+import com.sallahli.model.Enum.AppEnum;
+import com.sallahli.model.Enum.ConversationType;
+import com.sallahli.model.Enum.UserRoleEnum;
+import com.sallahli.model.Message;
 import com.sallahli.repository.ConversationParticipantRepository;
 import com.sallahli.repository.ConversationRepository;
 import com.sallahli.repository.MessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -37,10 +44,9 @@ public class ChatService implements PaginatedSearchService<ConversationDto, Conv
     private final ConversationMapper conversationMapper;
     private final ConversationParticipantsMapper participantsMapper;
     private final MessageMapper messageMapper;
-    private final ClientService clientService;
-    private final ProService proService;
 
-    private final List<UserRoleEnum> externalRoles = List.of(UserRoleEnum.CLIENT, UserRoleEnum.DRIVER, UserRoleEnum.PARTNER_MANAGER, UserRoleEnum.PARTNER_OWNER, UserRoleEnum.EMPLOYE);
+    private final List<UserRoleEnum> externalRoles = List.of(UserRoleEnum.CLIENT, UserRoleEnum.DRIVER,
+            UserRoleEnum.PARTNER_MANAGER, UserRoleEnum.PARTNER_OWNER, UserRoleEnum.EMPLOYE);
 
     public ConversationDto getConversationById(long conversationId) {
         Conversation conv = conversationRepository.findById(conversationId)
@@ -128,14 +134,13 @@ public class ChatService implements PaginatedSearchService<ConversationDto, Conv
             // TODO: Get connected client
             Long clientId = getCurrentUserId(UserRoleEnum.CLIENT);
 
-            List<Conversation> existing = conversationRepository.findOpenByTypeAndParticipant(
+            Page<Conversation> existing = conversationRepository.findOpenByTypeAndParticipant(
                     List.of(ConversationType.GENERAL_CLIENT_SUPPORT),
                     UserRoleEnum.CLIENT,
                     clientId,
-                    PageRequest.of(0, 1)
-            );
+                    PageRequest.of(0, 1));
             if (!existing.isEmpty()) {
-                Conversation existingConv = existing.get(0);
+                Conversation existingConv = existing.getContent().get(0);
                 if (employeeId != null) {
                     return assign(existingConv.getId(), employeeId);
                 }
@@ -152,10 +157,9 @@ public class ChatService implements PaginatedSearchService<ConversationDto, Conv
                     List.of(ConversationType.GENERAL_PRO_SUPPORT),
                     UserRoleEnum.DRIVER,
                     proId,
-                    PageRequest.of(0, 1)
-            );
+                    PageRequest.of(0, 1));
             if (!existing.isEmpty()) {
-                Conversation existingConv = existing.get(0);
+                Conversation existingConv = existing.getContent().get(0);
                 if (employeeId != null) {
                     return assign(existingConv.getId(), employeeId);
                 }
@@ -168,14 +172,13 @@ public class ChatService implements PaginatedSearchService<ConversationDto, Conv
             // TODO: Get connected client
             Long clientId = getCurrentUserId(UserRoleEnum.CLIENT);
 
-            List<Conversation> existing = conversationRepository.findOpenByTypeAndParticipant(
+            Page<Conversation> existing = conversationRepository.findOpenByTypeAndParticipant(
                     List.of(ConversationType.GENERAL_CLIENT_SUPPORT),
                     UserRoleEnum.CLIENT,
                     clientId,
-                    PageRequest.of(0, 1)
-            );
+                    PageRequest.of(0, 1));
             if (!existing.isEmpty()) {
-                Conversation existingConv = existing.get(0);
+                Conversation existingConv = existing.getContent().get(0);
                 if (employeeId != null) {
                     return assign(existingConv.getId(), employeeId);
                 }
@@ -191,10 +194,9 @@ public class ChatService implements PaginatedSearchService<ConversationDto, Conv
                     List.of(ConversationType.GENERAL_PRO_SUPPORT),
                     UserRoleEnum.DRIVER,
                     proId,
-                    PageRequest.of(0, 1)
-            );
+                    PageRequest.of(0, 1));
             if (!existing.isEmpty()) {
-                Conversation existingConv = existing.get(0);
+                Conversation existingConv = existing.getContent().get(0);
                 if (employeeId != null) {
                     return assign(existingConv.getId(), employeeId);
                 }
@@ -229,10 +231,12 @@ public class ChatService implements PaginatedSearchService<ConversationDto, Conv
             }
             case GENERAL_PARTNER_SUPPORT -> {
                 // TODO: Handle partner support conversations
-                throw new com.sallahli.exceptions.BadRequestException("Partner support conversations not implemented yet");
+                throw new com.sallahli.exceptions.BadRequestException(
+                        "Partner support conversations not implemented yet");
             }
             default -> {
-                throw new com.sallahli.exceptions.BadRequestException("Conversation type not managed: " + conv.getType());
+                throw new com.sallahli.exceptions.BadRequestException(
+                        "Conversation type not managed: " + conv.getType());
             }
         }
     }
@@ -243,8 +247,7 @@ public class ChatService implements PaginatedSearchService<ConversationDto, Conv
                         .conversation(conv)
                         .role(role)
                         .userId(userId)
-                        .build()
-        );
+                        .build());
     }
 
     public Page<ConversationDto> findByParticipantAndType(ConversationByParticipantRequest request, Pageable pageable) {
@@ -274,9 +277,8 @@ public class ChatService implements PaginatedSearchService<ConversationDto, Conv
         }
 
         // Remove existing support agents
-        conv.getParticipants().removeIf(p ->
-                List.of(UserRoleEnum.ADMIN, UserRoleEnum.CUSTOMER_SUPPORT_AGENT).contains(p.getRole())
-        );
+        conv.getParticipants()
+                .removeIf(p -> List.of(UserRoleEnum.ADMIN, UserRoleEnum.CUSTOMER_SUPPORT_AGENT).contains(p.getRole()));
 
         // Add new support agent
         ConversationParticipant supportParticipant = ConversationParticipant.builder()
@@ -295,13 +297,11 @@ public class ChatService implements PaginatedSearchService<ConversationDto, Conv
 
         counts.put("client", conversationRepository.countUnreadMessagesFromParticipantByType(
                 List.of(ConversationType.GENERAL_CLIENT_SUPPORT),
-                externalRoles
-        ));
+                externalRoles));
 
         counts.put("pro", conversationRepository.countUnreadMessagesFromParticipantByType(
                 List.of(ConversationType.GENERAL_PRO_SUPPORT),
-                externalRoles
-        ));
+                externalRoles));
 
         // TODO: Implement proper user authentication
         Long userId = getCurrentUserId(UserRoleEnum.CUSTOMER_SUPPORT_AGENT);
@@ -310,8 +310,7 @@ public class ChatService implements PaginatedSearchService<ConversationDto, Conv
                 List.of(
                         ConversationType.GENERAL_PARTNER_SUPPORT,
                         ConversationType.GENERAL_PRO_SUPPORT,
-                        ConversationType.GENERAL_CLIENT_SUPPORT
-                ),
+                        ConversationType.GENERAL_CLIENT_SUPPORT),
                 userId,
                 UserRoleEnum.CUSTOMER_SUPPORT_AGENT,
                 externalRoles));
@@ -323,8 +322,7 @@ public class ChatService implements PaginatedSearchService<ConversationDto, Conv
         List<UserRoleEnum> employeeRoles = List.of(
                 UserRoleEnum.ADMIN,
                 UserRoleEnum.CUSTOMER_SUPPORT_AGENT,
-                UserRoleEnum.ADMIN_PARTNER_MANAGER
-        );
+                UserRoleEnum.ADMIN_PARTNER_MANAGER);
 
         return conversationRepository.countConversationsWithoutAdminParticipants(employeeRoles);
     }
@@ -336,8 +334,7 @@ public class ChatService implements PaginatedSearchService<ConversationDto, Conv
         Page<Conversation> conversations = conversationRepository.findConversationsForUser(
                 userId,
                 userRole,
-                pageable
-        );
+                pageable);
 
         List<ConversationDto> content = conversations.stream()
                 .map(this::toEnrichedConversationDto)
@@ -355,8 +352,7 @@ public class ChatService implements PaginatedSearchService<ConversationDto, Conv
                 userId,
                 userRole,
                 senderRoles,
-                pageable
-        );
+                pageable);
 
         List<ConversationDto> content = conversations.stream()
                 .map(this::toEnrichedConversationDto)
@@ -414,27 +410,27 @@ public class ChatService implements PaginatedSearchService<ConversationDto, Conv
 
     private List<UserRoleEnum> getSenderRolesForApp(AppEnum app) {
         return switch (app) {
-            case CLIENT -> List.of(UserRoleEnum.ADMIN, UserRoleEnum.CUSTOMER_SUPPORT_AGENT, UserRoleEnum.ADMIN_PARTNER_MANAGER);
-            case DRIVER -> List.of(UserRoleEnum.ADMIN, UserRoleEnum.CUSTOMER_SUPPORT_AGENT, UserRoleEnum.ADMIN_PARTNER_MANAGER, UserRoleEnum.CLIENT);
+            case CLIENT ->
+                List.of(UserRoleEnum.ADMIN, UserRoleEnum.CUSTOMER_SUPPORT_AGENT, UserRoleEnum.ADMIN_PARTNER_MANAGER);
+            case DRIVER -> List.of(UserRoleEnum.ADMIN, UserRoleEnum.CUSTOMER_SUPPORT_AGENT,
+                    UserRoleEnum.ADMIN_PARTNER_MANAGER, UserRoleEnum.CLIENT);
             default -> externalRoles;
         };
     }
 
     private MessageDto toEnrichedMessageDto(Message message) {
-        if (message == null) return null;
+        if (message == null)
+            return null;
 
         MessageDto messageDto = messageMapper.toDtoWithoutConversation(message);
 
-        // TODO: Enrich with sender information based on role
         switch (message.getSenderRole()) {
             case CLIENT -> {
-                // TODO: Get client info
                 messageDto.setSenderFirstName("Client");
                 messageDto.setSenderLastName("Name");
                 messageDto.setSenderUsername("client_username");
             }
             case DRIVER -> {
-                // TODO: Get pro info (using DRIVER role for Pro users)
                 messageDto.setSenderFirstName("Pro");
                 messageDto.setSenderLastName("User");
                 messageDto.setSenderUsername("pro_username");

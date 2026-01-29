@@ -17,7 +17,6 @@ public interface AppConfigBundleMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "hash", ignore = true)
-    @Mapping(target = "isActive", constant = "true")
     AppConfigBundle toEntity(CreateConfigRequest request, String createdBy);
 }
 

@@ -33,8 +33,6 @@ public class ClientSignupService {
 
     private final Keycloak keycloak;
     private final ClientRepository clientRepository;
-    private final SmsService smsService;
-    private final WhatsappService whatsappService;
     private final OtpDispatchService otpDispatchService;
 
     @Transactional

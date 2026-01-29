@@ -208,12 +208,9 @@ public class AddressService extends AbstractCrudService<Address, AddressDTO> {
 
     @Override
     protected void beforePersist(Address entity, AddressDTO dto, boolean isNew) {
-        // Set default archived to false for new addresses
         if (isNew && entity.getArchived() == null) {
             entity.setArchived(false);
         }
-
-        // Validate coordinates if provided
         if (entity.getLatitude() != null) {
             if (entity.getLatitude() < -90 || entity.getLatitude() > 90) {
                 throw new IllegalArgumentException("Latitude must be between -90 and 90");
