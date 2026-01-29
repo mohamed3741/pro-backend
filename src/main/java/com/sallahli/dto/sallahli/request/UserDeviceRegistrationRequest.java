@@ -17,7 +17,7 @@ public class UserDeviceRegistrationRequest {
     private OsType osType;
     private String lang;
     private ProfileType profileType;
-    private Long clientId; // Only one of clientId or proId should be provided
+    private Long clientId;
     private Long proId;
 }
 

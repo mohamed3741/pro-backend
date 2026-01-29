@@ -26,9 +26,7 @@ public class ProController {
 
     private final ProService proService;
 
-    // ========================================================================
-    // CRUD Operations
-    // ========================================================================
+
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -76,9 +74,7 @@ public class ProController {
         return ResponseEntity.noContent().build();
     }
 
-    // ========================================================================
-    // Self-Service Endpoints (for Pro user)
-    // ========================================================================
+
 
     @PostMapping("/signup")
     @Operation(summary = "Pro Signup", description = "Register a new professional account")
@@ -173,9 +169,7 @@ public class ProController {
         return ResponseEntity.ok(proService.updateMyLowBalanceThreshold(proId, threshold));
     }
 
-    // ========================================================================
-    // Lookup Operations
-    // ========================================================================
+
 
     @GetMapping("/by-tel/{tel}")
     @PreAuthorize("hasAnyRole('PRO', 'ADMIN')")
@@ -185,9 +179,6 @@ public class ProController {
         return ResponseEntity.ok(proService.findByTel(tel));
     }
 
-    // ========================================================================
-    // KYC Management
-    // ========================================================================
 
     @GetMapping("/kyc/{status}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -229,9 +220,7 @@ public class ProController {
         return ResponseEntity.ok(proService.rejectKyc(id, reason));
     }
 
-    // ========================================================================
-    // Online/Availability Status
-    // ========================================================================
+
 
     @PostMapping("/{id}/online")
     @PreAuthorize("hasAnyRole('PRO', 'ADMIN')")
@@ -270,9 +259,7 @@ public class ProController {
         return ResponseEntity.ok(proService.findAvailableProsByTrade(tradeId, minBalance));
     }
 
-    // ========================================================================
-    // Account Management
-    // ========================================================================
+
 
     @PostMapping("/{id}/activate")
     @PreAuthorize("hasRole('ADMIN')")
@@ -300,9 +287,7 @@ public class ProController {
         return ResponseEntity.ok(proService.updateLowBalanceThreshold(id, threshold));
     }
 
-    // ========================================================================
-    // Statistics
-    // ========================================================================
+
 
     @GetMapping("/stats/count")
     @PreAuthorize("hasRole('ADMIN')")

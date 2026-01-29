@@ -25,7 +25,7 @@ public class ProDTO {
     private CategoryDTO trade;
     private ZoneDTO baseZone;
 
-    // KYC document fields
+
     private MediaDTO cniFrontMedia;
     private MediaDTO cniBackMedia;
     private MediaDTO selfieMedia;
@@ -35,18 +35,18 @@ public class ProDTO {
     private LocalDateTime approvedAt;
     private Long approvedBy;
 
-    // Current location
+
     private Double currentLatitude;
     private Double currentLongitude;
     private LocalDateTime locationUpdatedAt;
 
-    // Operational fields
+
     private Boolean online;
     private Double ratingAvg;
     private Long ratingCount;
     private Long jobsCompleted;
 
-    // Wallet fields
+
     private Long walletBalance;
     private Long lowBalanceThreshold;
 

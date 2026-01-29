@@ -21,23 +21,23 @@ public class CustomerRequestDTO {
     private ClientDTO client;
     private CategoryDTO category;
 
-    // Location
+
     private BigDecimal latitude;
     private BigDecimal longitude;
     private String addressText;
     private String landmark;
 
-    // Request details
+
     private String descriptionText;
     private MediaDTO voiceNoteMedia;
     private RequestStatus status;
     private Boolean urgent;
 
-    // Timing
+
     private LocalDateTime broadcastedAt;
     private LocalDateTime expiresAt;
 
-    // Additional fields for responses
+
     private List<MediaDTO> attachedMedia;
     private Integer nearbyProsCount;
     private LocalDateTime createdAt;

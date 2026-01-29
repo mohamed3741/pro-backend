@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class RatingSubmissionRequest {
 
     private Long jobId;
-    private Integer stars; // 1-5
+    private Integer stars;
     private String comment;
 }
 
