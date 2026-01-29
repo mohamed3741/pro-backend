@@ -2,10 +2,9 @@ package com.sallahli.mapper;
 
 import com.sallahli.dto.chat.MessageDto;
 import com.sallahli.model.Message;
-import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@org.mapstruct.Mapper(componentModel = "spring")
 public interface MessageMapper extends Mapper<Message, MessageDto> {
 
     @Override

@@ -2,10 +2,9 @@ package com.sallahli.mapper;
 
 import com.sallahli.dto.chat.ConversationParticipantDto;
 import com.sallahli.model.ConversationParticipant;
-import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@org.mapstruct.Mapper(componentModel = "spring")
 public interface ConversationParticipantsMapper extends Mapper<ConversationParticipant, ConversationParticipantDto> {
 
     @Override

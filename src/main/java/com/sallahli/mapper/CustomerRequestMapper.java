@@ -2,10 +2,9 @@ package com.sallahli.mapper;
 
 import com.sallahli.dto.sallahli.CustomerRequestDTO;
 import com.sallahli.model.CustomerRequest;
-import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {ClientMapper.class, CategoryMapper.class, MediaMapper.class})
+@org.mapstruct.Mapper(componentModel = "spring", uses = {ClientMapper.class, CategoryMapper.class, MediaMapper.class})
 public interface CustomerRequestMapper extends Mapper<CustomerRequest, CustomerRequestDTO> {
 
     @Override

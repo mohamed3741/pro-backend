@@ -24,8 +24,11 @@ public class Pro extends HasTimestamps implements Archivable {
     @Column(nullable = false, unique = true)
     private String tel;
 
+    private String firstName;
+    private String lastName;
     private String fullName;
     private String email;
+    private String profilePhoto;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trade_id", nullable = false)
@@ -35,7 +38,7 @@ public class Pro extends HasTimestamps implements Archivable {
     @JoinColumn(name = "base_zone_id")
     private Zone baseZone;
 
-    // KYC fields
+    // KYC document fields
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cni_front_media_id")
     private Media cniFrontMedia;
@@ -48,14 +51,23 @@ public class Pro extends HasTimestamps implements Archivable {
     @JoinColumn(name = "selfie_media_id")
     private Media selfieMedia;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trade_doc_media_id")
+    private Media tradeDocMedia;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
     private KycStatus kycStatus = KycStatus.PENDING;
 
+    private LocalDateTime kycSubmittedAt;
     private LocalDateTime approvedAt;
-
     private Long approvedBy;
+
+    // Current location (for real-time tracking)
+    private Double currentLatitude;
+    private Double currentLongitude;
+    private LocalDateTime locationUpdatedAt;
 
     // Operational fields
     @Builder.Default
@@ -85,4 +97,3 @@ public class Pro extends HasTimestamps implements Archivable {
     @Builder.Default
     private Boolean archived = false;
 }
-

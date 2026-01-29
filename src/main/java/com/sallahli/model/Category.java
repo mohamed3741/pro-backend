@@ -1,6 +1,7 @@
 package com.sallahli.model;
 
 import com.sallahli.model.Enum.LeadType;
+import com.sallahli.model.Enum.WorkflowType;
 import com.sallahli.utils.HasTimestamps;
 import jakarta.persistence.*;
 import lombok.*;
@@ -47,6 +48,16 @@ public class Category extends HasTimestamps implements Archivable {
     @Builder.Default
     private Integer matchLimit = 3;
 
+    /**
+     * Workflow strategy for lead distribution:
+     * - LEAD_OFFER: Traditional auction model (leads offered to multiple pros)
+     * - FIRST_CLICK: Uber-style model (first pro to accept wins)
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "workflow_type", nullable = false)
+    @Builder.Default
+    private WorkflowType workflowType = WorkflowType.LEAD_OFFER;
+
     @Column(nullable = false)
     @Builder.Default
     private Boolean active = true;
@@ -54,4 +65,3 @@ public class Category extends HasTimestamps implements Archivable {
     @Builder.Default
     private Boolean archived = false;
 }
-

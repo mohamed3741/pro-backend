@@ -32,13 +32,10 @@ CREATE SEQUENCE IF NOT EXISTS app_config_id_seq START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE IF NOT EXISTS user_device_id_seq START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE IF NOT EXISTS user_otp_expiration_id_seq START WITH 1 INCREMENT BY 1;
 
--- Payments (from your other project style)
 CREATE SEQUENCE IF NOT EXISTS online_transaction_sequence START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE IF NOT EXISTS payment_id_seq START WITH 1 INCREMENT BY 1;
 
---------------------------------------------------------------------------------
--- Shared: Media
---------------------------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS media (
                                      id          BIGINT PRIMARY KEY DEFAULT nextval('media_id_seq'),
     type        VARCHAR(50),
@@ -49,9 +46,7 @@ CREATE TABLE IF NOT EXISTS media (
     updated_at  TIMESTAMP
     );
 
---------------------------------------------------------------------------------
--- Client (Demand side)
---------------------------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS client (
                                       id                  BIGINT PRIMARY KEY DEFAULT nextval('client_id_seq'),
     tel                 VARCHAR(20),
@@ -88,9 +83,7 @@ ALTER TABLE client
 
 CREATE INDEX IF NOT EXISTS idx_client_tel ON client(tel);
 
---------------------------------------------------------------------------------
--- Addalli: Categories + Zones
---------------------------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS category (
                                                 id            BIGINT PRIMARY KEY DEFAULT nextval('category_id_seq'),
     code          VARCHAR(50) NOT NULL,     -- PLUMBING/ELECTRICITY/HVAC
@@ -122,9 +115,7 @@ CREATE TABLE IF NOT EXISTS zone (
     CONSTRAINT uq_zone_name UNIQUE (name)
     );
 
---------------------------------------------------------------------------------
--- Addalli: Pro (Supply side)
---------------------------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS pro (
                                    id                     BIGINT PRIMARY KEY DEFAULT nextval('pro_id_seq'),
     tel                    VARCHAR(20) NOT NULL,
@@ -185,9 +176,7 @@ CREATE INDEX IF NOT EXISTS idx_pro_tel ON pro(tel);
 CREATE INDEX IF NOT EXISTS idx_pro_online ON pro(online);
 CREATE INDEX IF NOT EXISTS idx_pro_trade ON pro(trade_id);
 
---------------------------------------------------------------------------------
--- Wallet Ledger (auditable)
---------------------------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS pro_wallet_transaction (
                                                       id                BIGINT PRIMARY KEY DEFAULT nextval('pro_wallet_tx_id_seq'),
     pro_id            BIGINT NOT NULL,
@@ -208,9 +197,7 @@ ALTER TABLE pro_wallet_transaction
 CREATE INDEX IF NOT EXISTS idx_pro_wallet_tx_pro_id ON pro_wallet_transaction(pro_id);
 CREATE INDEX IF NOT EXISTS idx_pro_wallet_tx_created_at ON pro_wallet_transaction(created_at);
 
---------------------------------------------------------------------------------
--- Customer Requests (Demand)
---------------------------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS customer_request (
                                                 id                  BIGINT PRIMARY KEY DEFAULT nextval('customer_request_id_seq'),
     client_id            BIGINT,
@@ -268,9 +255,7 @@ ALTER TABLE request_media
 
 CREATE INDEX IF NOT EXISTS idx_request_media_request_id ON request_media(request_id);
 
---------------------------------------------------------------------------------
--- Auction / Lead Engine
---------------------------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS lead_offer (
                                           id          BIGINT PRIMARY KEY DEFAULT nextval('lead_offer_id_seq'),
     request_id  BIGINT NOT NULL,
@@ -301,9 +286,7 @@ CREATE INDEX IF NOT EXISTS idx_lead_offer_request_id ON lead_offer(request_id);
 CREATE INDEX IF NOT EXISTS idx_lead_offer_pro_id ON lead_offer(pro_id);
 CREATE INDEX IF NOT EXISTS idx_lead_offer_status ON lead_offer(status);
 
---------------------------------------------------------------------------------
--- Job lifecycle
---------------------------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS job (
                                    id            BIGINT PRIMARY KEY DEFAULT nextval('job_id_seq'),
     request_id    BIGINT NOT NULL,
@@ -341,9 +324,7 @@ ALTER TABLE job
 CREATE INDEX IF NOT EXISTS idx_job_pro_id ON job(pro_id);
 CREATE INDEX IF NOT EXISTS idx_job_status ON job(status);
 
---------------------------------------------------------------------------------
--- Rating
---------------------------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS rating (
                                       id         BIGINT PRIMARY KEY DEFAULT nextval('rating_id_seq'),
     job_id     BIGINT NOT NULL,
@@ -378,10 +359,7 @@ ALTER TABLE rating
 
 CREATE INDEX IF NOT EXISTS idx_rating_pro_id ON rating(pro_id);
 
---------------------------------------------------------------------------------
--- Payments (Adjusted for Addalli prepaid wallet recharge)
--- Mirrors your entity shapes: OnlineTransaction + Payment
---------------------------------------------------------------------------------
+
 
 -- OnlineTransaction: one record per provider operation
 CREATE TABLE IF NOT EXISTS online_transaction (
@@ -404,8 +382,7 @@ CREATE TABLE IF NOT EXISTS online_transaction (
 CREATE INDEX IF NOT EXISTS idx_online_tx_operation_id ON online_transaction(operation_id);
 CREATE INDEX IF NOT EXISTS idx_online_tx_bank_type ON online_transaction(bank_type);
 
--- Payment: business record (purpose + status)
--- NOTE: I removed Account dependency and replaced it with pro_id/client_id (since Addalli)
+
 CREATE TABLE IF NOT EXISTS payment (
                                        id                    BIGINT PRIMARY KEY DEFAULT nextval('payment_id_seq'),
 
@@ -422,7 +399,6 @@ CREATE TABLE IF NOT EXISTS payment (
     payment_media_id      BIGINT,
     payment_ref           VARCHAR(255),
 
-    -- Addalli ownership: for recharging pro wallet (main use-case)
     pro_id                BIGINT,
     client_id             BIGINT,                 -- optional if client can pay for something later
     admin_id              BIGINT,
@@ -456,9 +432,7 @@ CREATE INDEX IF NOT EXISTS idx_payment_purpose ON payment(payment_purpose);
 CREATE INDEX IF NOT EXISTS idx_payment_pro_id ON payment(pro_id);
 CREATE INDEX IF NOT EXISTS idx_payment_client_id ON payment(client_id);
 
---------------------------------------------------------------------------------
--- Devices + OTP
---------------------------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS user_device (
                                            id           BIGINT PRIMARY KEY DEFAULT nextval('user_device_id_seq'),
     token        VARCHAR(255),
@@ -491,9 +465,7 @@ CREATE TABLE IF NOT EXISTS user_otp_expiration (
     updated_at        TIMESTAMP
     );
 
---------------------------------------------------------------------------------
--- Notifications (+ attributes + mapping to client/pro)
---------------------------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS notification (
                                             id             BIGINT PRIMARY KEY DEFAULT nextval('notification_id_seq'),
     read_at        TIMESTAMP,
@@ -550,9 +522,7 @@ ALTER TABLE pro_notification
     ADD CONSTRAINT fk_pro_notification_notification
         FOREIGN KEY (notification_id) REFERENCES notification(id) ON DELETE CASCADE;
 
---------------------------------------------------------------------------------
--- App Config
---------------------------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS app_config_bundle (
                                                  id            BIGINT PRIMARY KEY DEFAULT nextval('app_config_id_seq'),
     app           VARCHAR(20) NOT NULL,
@@ -572,9 +542,7 @@ CREATE TABLE IF NOT EXISTS app_config_bundle (
 CREATE INDEX IF NOT EXISTS idx_app_config_bundle_is_active ON app_config_bundle(is_active);
 CREATE INDEX IF NOT EXISTS idx_app_config_bundle_hash ON app_config_bundle(hash);
 
---------------------------------------------------------------------------------
--- Translations
---------------------------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS translation_values (
                                                   id                 BIGINT PRIMARY KEY DEFAULT nextval('translation_seq_id'),
     language_code      VARCHAR(10)  NOT NULL,
@@ -585,3 +553,52 @@ CREATE TABLE IF NOT EXISTS translation_values (
     updated_at         TIMESTAMP,
     CONSTRAINT uq_translation_lang_key UNIQUE (language_code, translation_key)
     );
+
+CREATE SEQUENCE IF NOT EXISTS address_id_seq START WITH 1 INCREMENT BY 1;
+
+CREATE TABLE IF NOT EXISTS address (
+                                       id                 BIGINT PRIMARY KEY DEFAULT nextval('address_id_seq'),
+    name               VARCHAR(255),
+    latitude           NUMERIC(10,7),
+    longitude          NUMERIC(10,7),
+    country            VARCHAR(100),
+    postal_code        VARCHAR(50),
+    timezone           VARCHAR(50),
+    formatted_address  TEXT,
+    tel                VARCHAR(30),
+    custom_locality    VARCHAR(255),
+    description        TEXT,
+    title              VARCHAR(255),
+    route              VARCHAR(255),
+    building_number    INTEGER,
+    building_name      VARCHAR(255),
+    archived           BOOLEAN DEFAULT FALSE,
+    created_at         TIMESTAMP,
+    updated_at         TIMESTAMP
+    );
+
+CREATE INDEX IF NOT EXISTS idx_address_archived ON address(archived);
+
+
+CREATE TABLE IF NOT EXISTS client_address_relation (
+                                                       client_id  BIGINT NOT NULL,
+                                                       address_id BIGINT NOT NULL,
+                                                       PRIMARY KEY (client_id, address_id)
+    );
+
+ALTER TABLE client_address_relation
+    ADD CONSTRAINT IF NOT EXISTS fk_client_address_client
+    FOREIGN KEY (client_id) REFERENCES client(id) ON DELETE CASCADE;
+
+ALTER TABLE client_address_relation
+    ADD CONSTRAINT IF NOT EXISTS fk_client_address_address
+    FOREIGN KEY (address_id) REFERENCES address(id) ON DELETE CASCADE;
+
+CREATE INDEX IF NOT EXISTS idx_client_address_client_id ON client_address_relation(client_id);
+CREATE INDEX IF NOT EXISTS idx_client_address_address_id ON client_address_relation(address_id);
+
+
+ALTER TABLE category
+    ADD COLUMN IF NOT EXISTS workflow_type VARCHAR(20) DEFAULT 'LEAD_OFFER';
+
+UPDATE category SET workflow_type = 'LEAD_OFFER' WHERE workflow_type IS NULL;

@@ -4,66 +4,155 @@ import com.eatthepath.pushy.apns.ApnsClient;
 import com.eatthepath.pushy.apns.PushNotificationResponse;
 import com.eatthepath.pushy.apns.util.ApnsPayloadBuilder;
 import com.eatthepath.pushy.apns.util.SimpleApnsPushNotification;
-import com.sallahli.model.Notification;
-import com.sallahli.model.Pro;
+import com.google.firebase.messaging.*;
+import com.sallahli.config.ApnsConfig;
+import com.sallahli.config.WebPushConfig;
 import com.sallahli.model.Enum.OsType;
-import com.sallahli.repository.ClientRepository;
-import com.sallahli.repository.ProRepository;
+import com.sallahli.model.Enum.ProfileType;
+import com.sallahli.model.Notification;
+import com.sallahli.model.UserDevice;
 import com.sallahli.repository.UserDeviceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Push Notification Service.
+ * Handles sending push notifications to iOS (APNs), Android (FCM), and Web
+ * (FCM/VAPID).
+ */
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class PushNotificationService {
 
     private final UserDeviceRepository userDeviceRepository;
-    private final ClientRepository clientRepository;
-    private final ProRepository proRepository;
-    private final ApnsClient apnsClient; // Injected from ApnsConfig
+    private final UserDeviceService userDeviceService;
+    private final FirebaseMessaging firebaseMessaging;
+    private final ApnsClient clientApnsClient;
+    private final ApnsClient proApnsClient;
+    private final ApnsConfig apnsConfig;
+    private final WebPushConfig webPushConfig;
 
+    public PushNotificationService(
+            UserDeviceRepository userDeviceRepository,
+            UserDeviceService userDeviceService,
+            FirebaseMessaging firebaseMessaging,
+            @Qualifier("clientApnsClient") ApnsClient clientApnsClient,
+            @Qualifier("proApnsClient") ApnsClient proApnsClient,
+            ApnsConfig apnsConfig,
+            WebPushConfig webPushConfig) {
+        this.userDeviceRepository = userDeviceRepository;
+        this.userDeviceService = userDeviceService;
+        this.firebaseMessaging = firebaseMessaging;
+        this.clientApnsClient = clientApnsClient;
+        this.proApnsClient = proApnsClient;
+        this.apnsConfig = apnsConfig;
+        this.webPushConfig = webPushConfig;
+    }
+
+    // ========================================================================
+    // High-Level Send Methods
+    // ========================================================================
+
+    /**
+     * Send notification to a specific Pro.
+     */
     public void sendToPro(Long proId, Notification notification) {
-        // Get pro's devices
-        List<com.sallahli.model.UserDevice> devices = userDeviceRepository.findByProId(proId);
+        List<UserDevice> devices = userDeviceRepository.findByProId(proId);
 
-        for (com.sallahli.model.UserDevice device : devices) {
-            sendPushNotification(device, notification);
+        if (devices.isEmpty()) {
+            log.warn("No devices registered for pro: {}", proId);
+            return;
+        }
+
+        for (UserDevice device : devices) {
+            sendToDevice(device, notification, ProfileType.PRO);
         }
     }
 
+    /**
+     * Send notification to a specific Client.
+     */
     public void sendToClient(Long clientId, Notification notification) {
-        // Get client's devices
-        List<com.sallahli.model.UserDevice> devices = userDeviceRepository.findByClientId(clientId);
+        List<UserDevice> devices = userDeviceRepository.findByClientId(clientId);
 
-        for (com.sallahli.model.UserDevice device : devices) {
-            sendPushNotification(device, notification);
+        if (devices.isEmpty()) {
+            log.warn("No devices registered for client: {}", clientId);
+            return;
+        }
+
+        for (UserDevice device : devices) {
+            sendToDevice(device, notification, ProfileType.CLIENT);
         }
     }
 
-    public void sendToAllPros(Notification notification) {
-        // This would be expensive - better to use topics/channels
-        List<Pro> pros = proRepository.findAll();
-        for (Pro pro : pros) {
-            sendToPro(pro.getId(), notification);
+    /**
+     * Send notification to all devices of a specific profile type.
+     */
+    public void sendToAllByProfileType(ProfileType profileType, Notification notification) {
+        List<UserDevice> devices = userDeviceRepository.findByProfileType(profileType);
+        log.info("Sending notification to {} {} devices", devices.size(), profileType);
+
+        for (UserDevice device : devices) {
+            sendToDevice(device, notification, profileType);
         }
     }
 
-    private void sendPushNotification(com.sallahli.model.UserDevice device, Notification notification) {
-        if (device.getOsType() == OsType.IOS) {
-            sendApnsNotification(device, notification);
-        } else if (device.getOsType() == OsType.ANDROID) {
-            sendFcmNotification(device, notification);
-        } else {
-            log.warn("Unsupported OS type for device: {}", device.getOsType());
+    /**
+     * Send notification to a specific device token.
+     */
+    public void sendToToken(String token, Notification notification, ProfileType profileType) {
+        userDeviceRepository.findByToken(token).ifPresent(device -> sendToDevice(device, notification, profileType));
+    }
+
+    // ========================================================================
+    // Platform-Specific Send Methods
+    // ========================================================================
+
+    private void sendToDevice(UserDevice device, Notification notification, ProfileType profileType) {
+        try {
+            switch (device.getOsType()) {
+                case IOS:
+                    sendApnsNotification(device, notification, profileType);
+                    break;
+                case ANDROID:
+                case EXPO:
+                    sendFcmNotification(device, notification);
+                    break;
+                case WEB:
+                    sendWebPushNotification(device, notification);
+                    break;
+                default:
+                    log.warn("Unsupported OS type for device: {}", device.getOsType());
+            }
+        } catch (Exception e) {
+            log.error("Failed to send push notification to device {}: {}",
+                    truncateToken(device.getToken()), e.getMessage());
         }
     }
 
-    private void sendApnsNotification(com.sallahli.model.UserDevice device, Notification notification) {
+    // ========================================================================
+    // iOS (APNs) Notifications
+    // ========================================================================
+
+    private void sendApnsNotification(UserDevice device, Notification notification, ProfileType profileType) {
+        ApnsClient apnsClient = profileType == ProfileType.PRO ? proApnsClient : clientApnsClient;
+        String bundleId = profileType == ProfileType.PRO
+                ? apnsConfig.getProBundleId()
+                : apnsConfig.getClientBundleId();
+
+        if (apnsClient == null) {
+            log.warn("APNs client not configured for profile type: {}", profileType);
+            return;
+        }
+
         try {
             final ApnsPayloadBuilder payloadBuilder = new ApnsPayloadBuilder();
             payloadBuilder.setAlertTitle(notification.getTitle());
@@ -72,38 +161,239 @@ public class PushNotificationService {
             payloadBuilder.setSound("default");
 
             // Add custom data
-            payloadBuilder.addCustomProperty("notificationId", notification.getId());
-            payloadBuilder.addCustomProperty("type", notification.getType());
-            payloadBuilder.addCustomProperty("businessId", notification.getBusinessId());
+            if (notification.getId() != null) {
+                payloadBuilder.addCustomProperty("notificationId", notification.getId());
+            }
+            if (notification.getType() != null) {
+                payloadBuilder.addCustomProperty("type", notification.getType().name());
+            }
+            if (notification.getBusinessId() != null) {
+                payloadBuilder.addCustomProperty("businessId", notification.getBusinessId());
+            }
+            if (notification.getServedApp() != null) {
+                payloadBuilder.addCustomProperty("servedApp", notification.getServedApp());
+            }
 
             final String payload = payloadBuilder.build();
             final String token = device.getToken();
 
-            SimpleApnsPushNotification pushNotification = new SimpleApnsPushNotification(token, "com.sallahli.app", payload);
+            SimpleApnsPushNotification pushNotification = new SimpleApnsPushNotification(
+                    token, bundleId, payload);
 
-            PushNotificationResponse<SimpleApnsPushNotification> response = apnsClient.sendNotification(pushNotification).get();
+            PushNotificationResponse<SimpleApnsPushNotification> response = apnsClient
+                    .sendNotification(pushNotification).get();
 
             if (response.isAccepted()) {
-                log.info("APNs notification sent successfully to device: {}", token.substring(0, 10) + "...");
+                log.debug("APNs notification sent successfully to device: {}...", truncateToken(token));
             } else {
-                log.error("APNs notification rejected for device {}: {}", token.substring(0, 10) + "...",
-                         response.getRejectionReason());
+                log.error("APNs notification rejected for device {}...: {}",
+                        truncateToken(token), response.getRejectionReason());
+
+                // Handle invalid tokens
+                if ("BadDeviceToken".equals(response.getRejectionReason()) ||
+                        "Unregistered".equals(response.getRejectionReason())) {
+                    userDeviceService.removeInvalidToken(token);
+                }
             }
 
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("Failed to send APNs notification to device: {}", device.getToken(), e);
+        } catch (InterruptedException e) {
+            log.error("APNs send interrupted for device: {}", truncateToken(device.getToken()));
             Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            log.error("APNs send failed for device {}: {}", truncateToken(device.getToken()), e.getMessage());
         }
     }
 
-    private void sendFcmNotification(com.sallahli.model.UserDevice device, Notification notification) {
-        // FCM implementation would go here
-        // For now, just log
-        log.info("FCM notification would be sent to Android device {}: {}", device.getToken(), notification.getTitle());
+    // ========================================================================
+    // Android/Expo (FCM) Notifications
+    // ========================================================================
 
-        // TODO: Implement FCM integration
-        // - Use Firebase Admin SDK
-        // - Build FCM message
-        // - Send to FCM
+    private void sendFcmNotification(UserDevice device, Notification notification) {
+        if (firebaseMessaging == null) {
+            log.warn("Firebase Messaging not configured. Cannot send FCM notification.");
+            return;
+        }
+
+        try {
+            // Build FCM message with both notification and data payload
+            Message.Builder messageBuilder = Message.builder()
+                    .setToken(device.getToken())
+                    .setNotification(com.google.firebase.messaging.Notification.builder()
+                            .setTitle(notification.getTitle())
+                            .setBody(notification.getContent())
+                            .build())
+                    .setAndroidConfig(AndroidConfig.builder()
+                            .setPriority(AndroidConfig.Priority.HIGH)
+                            .setNotification(AndroidNotification.builder()
+                                    .setSound("default")
+                                    .setClickAction("FLUTTER_NOTIFICATION_CLICK")
+                                    .build())
+                            .build());
+
+            // Add custom data payload
+            Map<String, String> data = new HashMap<>();
+            if (notification.getId() != null) {
+                data.put("notificationId", notification.getId().toString());
+            }
+            if (notification.getType() != null) {
+                data.put("type", notification.getType().name());
+            }
+            if (notification.getBusinessId() != null) {
+                data.put("businessId", notification.getBusinessId().toString());
+            }
+            if (notification.getServedApp() != null) {
+                data.put("servedApp", notification.getServedApp());
+            }
+
+            if (!data.isEmpty()) {
+                messageBuilder.putAllData(data);
+            }
+
+            String response = firebaseMessaging.send(messageBuilder.build());
+            log.debug("FCM notification sent successfully. Message ID: {}", response);
+
+        } catch (FirebaseMessagingException e) {
+            log.error("FCM send failed for device {}: {}", truncateToken(device.getToken()), e.getMessage());
+
+            // Handle invalid tokens
+            if (e.getMessagingErrorCode() == MessagingErrorCode.UNREGISTERED ||
+                    e.getMessagingErrorCode() == MessagingErrorCode.INVALID_ARGUMENT) {
+                userDeviceService.removeInvalidToken(device.getToken());
+            }
+        }
+    }
+
+    // ========================================================================
+    // Web Push Notifications
+    // ========================================================================
+
+    private void sendWebPushNotification(UserDevice device, Notification notification) {
+        if (!webPushConfig.isEnabled()) {
+            log.warn("Web Push is disabled. Cannot send web notification.");
+            return;
+        }
+
+        // For web push, we use FCM with web configuration
+        if (firebaseMessaging == null) {
+            log.warn("Firebase Messaging not configured for web push.");
+            return;
+        }
+
+        try {
+            // Build web push specific message
+            Message.Builder messageBuilder = Message.builder()
+                    .setToken(device.getToken())
+                    .setWebpushConfig(WebpushConfig.builder()
+                            .setNotification(WebpushNotification.builder()
+                                    .setTitle(notification.getTitle())
+                                    .setBody(notification.getContent())
+                                    .setIcon("/icons/notification-icon.png")
+                                    .setBadge("/icons/badge-icon.png")
+                                    .build())
+                            .setFcmOptions(WebpushFcmOptions.builder()
+                                    .setLink("https://app.sallahli.com")
+                                    .build())
+                            .build());
+
+            // Add data payload
+            Map<String, String> data = new HashMap<>();
+            if (notification.getId() != null) {
+                data.put("notificationId", notification.getId().toString());
+            }
+            if (notification.getType() != null) {
+                data.put("type", notification.getType().name());
+            }
+            if (notification.getBusinessId() != null) {
+                data.put("businessId", notification.getBusinessId().toString());
+            }
+
+            if (!data.isEmpty()) {
+                messageBuilder.putAllData(data);
+            }
+
+            String response = firebaseMessaging.send(messageBuilder.build());
+            log.debug("Web push notification sent successfully. Message ID: {}", response);
+
+        } catch (FirebaseMessagingException e) {
+            log.error("Web push send failed for device {}: {}", truncateToken(device.getToken()), e.getMessage());
+
+            if (e.getMessagingErrorCode() == MessagingErrorCode.UNREGISTERED) {
+                userDeviceService.removeInvalidToken(device.getToken());
+            }
+        }
+    }
+
+    // ========================================================================
+    // Topic-Based Notifications (for broadcasts)
+    // ========================================================================
+
+    /**
+     * Send notification to a topic (all subscribers).
+     */
+    public void sendToTopic(String topic, Notification notification) {
+        if (firebaseMessaging == null) {
+            log.warn("Firebase Messaging not configured. Cannot send topic notification.");
+            return;
+        }
+
+        try {
+            Message message = Message.builder()
+                    .setTopic(topic)
+                    .setNotification(com.google.firebase.messaging.Notification.builder()
+                            .setTitle(notification.getTitle())
+                            .setBody(notification.getContent())
+                            .build())
+                    .putData("type", notification.getType() != null ? notification.getType().name() : "GENERAL")
+                    .build();
+
+            String response = firebaseMessaging.send(message);
+            log.info("Topic notification sent to '{}'. Message ID: {}", topic, response);
+
+        } catch (FirebaseMessagingException e) {
+            log.error("Failed to send topic notification to '{}': {}", topic, e.getMessage());
+        }
+    }
+
+    /**
+     * Subscribe a device to a topic.
+     */
+    public void subscribeToTopic(String token, String topic) {
+        if (firebaseMessaging == null) {
+            return;
+        }
+
+        try {
+            firebaseMessaging.subscribeToTopic(List.of(token), topic);
+            log.debug("Device subscribed to topic: {}", topic);
+        } catch (FirebaseMessagingException e) {
+            log.error("Failed to subscribe device to topic '{}': {}", topic, e.getMessage());
+        }
+    }
+
+    /**
+     * Unsubscribe a device from a topic.
+     */
+    public void unsubscribeFromTopic(String token, String topic) {
+        if (firebaseMessaging == null) {
+            return;
+        }
+
+        try {
+            firebaseMessaging.unsubscribeFromTopic(List.of(token), topic);
+            log.debug("Device unsubscribed from topic: {}", topic);
+        } catch (FirebaseMessagingException e) {
+            log.error("Failed to unsubscribe device from topic '{}': {}", topic, e.getMessage());
+        }
+    }
+
+    // ========================================================================
+    // Helpers
+    // ========================================================================
+
+    private String truncateToken(String token) {
+        if (token == null || token.length() < 10) {
+            return token;
+        }
+        return token.substring(0, 10) + "...";
     }
 }

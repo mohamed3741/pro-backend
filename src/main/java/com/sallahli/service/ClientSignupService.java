@@ -38,7 +38,7 @@ public class ClientSignupService {
     private final OtpDispatchService otpDispatchService;
 
     @Transactional
-    public UserDTO signup(UserDTO userDTO, DeliveryMethod deliveryMethod) {
+    public UserDTO signup(UserDTO userDTO) {
         // Validate input
         validateUserInput(userDTO);
 
@@ -48,9 +48,9 @@ public class ClientSignupService {
         List<UserRepresentation> existingUsers = usersResource.searchByUsername(userDTO.getUsername(), true);
         if (existingUsers != null && !existingUsers.isEmpty()) {
             UserRepresentation existingUser = existingUsers.get(0);
-            return handleExistingClient(usersResource, userDTO, existingUser, deliveryMethod);
+            return handleExistingClient(usersResource, userDTO, existingUser);
         } else {
-            return createNewClient(usersResource, userDTO, deliveryMethod);
+            return createNewClient(usersResource, userDTO);
         }
     }
 
@@ -69,7 +69,7 @@ public class ClientSignupService {
         }
     }
 
-    private UserDTO createNewClient(UsersResource usersResource, UserDTO userDTO, DeliveryMethod deliveryMethod) {
+    private UserDTO createNewClient(UsersResource usersResource, UserDTO userDTO) {
         Response response = null;
         try {
             response = createKeycloakUser(userDTO, usersResource);
@@ -78,12 +78,13 @@ public class ClientSignupService {
                 // Assign client role
                 assignClientRole(userDTO.getUsername());
 
-                // Save to local database and generate verification code
-                return saveClientAndGenerateVerificationCode(userDTO, deliveryMethod);
+                // Save to local database
+                return saveClient(userDTO);
             } else if (response.getStatus() == 409) { // HttpStatus.SC_CONFLICT
                 throw new com.sallahli.exceptions.BadRequestException("The email is already used by another user");
             } else {
-                throw new RuntimeException(String.format("Error creating user in Keycloak: status=%d", response.getStatus()));
+                throw new RuntimeException(
+                        String.format("Error creating user in Keycloak: status=%d", response.getStatus()));
             }
         } catch (Exception e) {
             log.error("Error during client signup for username: {}", userDTO.getUsername(), e);
@@ -120,7 +121,7 @@ public class ClientSignupService {
     }
 
     private UserDTO handleExistingClient(UsersResource usersResource, UserDTO userDTO,
-                                       UserRepresentation kcUser, DeliveryMethod deliveryMethod) {
+            UserRepresentation kcUser) {
         UserRepresentation existingUser = usersResource.get(kcUser.getId()).toRepresentation();
         RoleScopeResource roleScopes = usersResource.get(kcUser.getId()).roles().realmLevel();
 
@@ -128,7 +129,8 @@ public class ClientSignupService {
             throw new com.sallahli.exceptions.ConflictAccountException("Account already exists");
         } else {
             // Assign client role if not already assigned
-            RoleRepresentation clientRole = keycloak.realm(realm).roles().get(KeycloakUtils.CLIENT_ROLE).toRepresentation();
+            RoleRepresentation clientRole = keycloak.realm(realm).roles().get(KeycloakUtils.CLIENT_ROLE)
+                    .toRepresentation();
             if (!roleScopes.listEffective().contains(clientRole)) {
                 usersResource.get(kcUser.getId()).roles().realmLevel().add(List.of(clientRole));
             }
@@ -140,12 +142,12 @@ public class ClientSignupService {
             existingUser.setEmail(userDTO.getEmail());
             usersResource.get(existingUser.getId()).update(existingUser);
 
-            return saveClientAndGenerateVerificationCode(userDTO, deliveryMethod);
+            return saveClient(userDTO);
         }
     }
 
-    private UserDTO saveClientAndGenerateVerificationCode(UserDTO userDTO, DeliveryMethod deliveryMethod) {
-        Client localUser = clientRepository.findByUsername(userDTO.getUsername());
+    private UserDTO saveClient(UserDTO userDTO) {
+        Client localUser = clientRepository.findByUsername(userDTO.getUsername()).orElse(null);
         if (localUser == null) {
             localUser = new Client();
             localUser.setUsername(userDTO.getUsername());
@@ -166,13 +168,7 @@ public class ClientSignupService {
         localUser.setArchived(false);
         localUser.setIsTelVerified(false);
 
-        localUser = clientRepository.save(localUser);
-
-        try {
-            generateVerificationCode(userDTO.getUsername(), deliveryMethod);
-        } catch (Exception e) {
-            log.error("Failed to send verification code for client {}, but client was created successfully", userDTO.getUsername(), e);
-        }
+        clientRepository.save(localUser);
 
         return userDTO;
     }
@@ -185,7 +181,8 @@ public class ClientSignupService {
         UsersResource usersResource = keycloak.realm(realm).users();
         List<UserRepresentation> users = usersResource.searchByUsername(userCode.getUsername(), true);
         if (users == null || users.isEmpty()) {
-            throw new com.sallahli.exceptions.BadRequestException(String.format("No user found with phone number %s", userCode.getUsername()));
+            throw new com.sallahli.exceptions.BadRequestException(
+                    String.format("No user found with phone number %s", userCode.getUsername()));
         }
 
         UserRepresentation user = usersResource.get(users.get(0).getId()).toRepresentation();
@@ -200,7 +197,7 @@ public class ClientSignupService {
             usersResource.get(user.getId()).update(user);
 
             // Update local client
-            Client client = clientRepository.findByUsername(userCode.getUsername());
+            Client client = clientRepository.findByUsername(userCode.getUsername()).orElse(null);
             if (client != null) {
                 client.setIsTelVerified(true);
                 clientRepository.save(client);
@@ -219,7 +216,8 @@ public class ClientSignupService {
 
         java.time.LocalDateTime expirationDate = java.time.LocalDateTime.parse(expirationDateStr);
         if (java.time.LocalDateTime.now().isAfter(expirationDate)) {
-            throw new com.sallahli.exceptions.BadRequestException("Verification code expired, generate new one and try again");
+            throw new com.sallahli.exceptions.BadRequestException(
+                    "Verification code expired, generate new one and try again");
         }
 
         String storedCode = user.firstAttribute(KeycloakUtils.VERIFICATION_CODE_ATTRIBUTE);
@@ -239,7 +237,7 @@ public class ClientSignupService {
 
         user.singleAttribute(KeycloakUtils.VERIFICATION_CODE_ATTRIBUTE, code);
         user.singleAttribute(KeycloakUtils.VERIFICATION_CODE_EXPIRATION_ATTRIBUTE,
-                           java.time.LocalDateTime.now().plusMinutes(5).toString());
+                java.time.LocalDateTime.now().plusMinutes(5).toString());
         usersResource.get(user.getId()).update(user);
 
         sendVerificationCode(user, deliveryMethod);

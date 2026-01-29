@@ -16,12 +16,10 @@ public class ClientSignupController {
     private final ClientSignupService clientSignupService;
 
     @PostMapping("/signup")
-    public ResponseEntity<UserDTO> signup(
-            @RequestBody UserDTO userDTO,
-            @RequestParam(defaultValue = "WHATSAPP") DeliveryMethod deliveryMethod) {
+    public ResponseEntity<UserDTO> signup(@RequestBody UserDTO userDTO) {
 
         try {
-            UserDTO result = clientSignupService.signup(userDTO, deliveryMethod);
+            UserDTO result = clientSignupService.signup(userDTO);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
