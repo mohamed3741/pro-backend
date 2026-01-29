@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: clinic-backend
+  name: sallahli-backend
   labels:
-    app: clinic-backend
+    app: sallahli-backend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: clinic-backend
+      app: sallahli-backend
   template:
     metadata:
       labels:
-        app: clinic-backend
+        app: sallahli-backend
     spec:
       imagePullSecrets:
       - name: regcred
       containers:
-      - name: clinic-backend
+      - name: sallahli-backend
         image: ghcr.io/mohamed3741/pro-backend:latest
         imagePullPolicy: Always
         ports:
@@ -53,16 +53,16 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: clinic-backend
+  name: sallahli-backend
   labels:
-    app: clinic-backend
+    app: sallahli-backend
 spec:
   type: LoadBalancer
   ports:
-    - name: clinic-backend
+    - name: sallahli-backend
       protocol: TCP
       port: 80
       targetPort: 8080
   selector:
-    app: clinic-backend
+    app: sallahli-backend
 

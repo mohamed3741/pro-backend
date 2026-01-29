@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: postgres-clinic-statefulset
+  name: postgres-sallahli-statefulset
   labels:
-    app: postgres-clinic
+    app: postgres-sallahli
 spec:
-  serviceName: "postgres-clinic"
+  serviceName: "postgres-sallahli"
   replicas: 1
   selector:
     matchLabels:
-      app: postgres-clinic
+      app: postgres-sallahli
   template:
     metadata:
       labels:
-        app: postgres-clinic
+        app: postgres-sallahli
     spec:
       containers:
-      - name: postgres-clinic
+      - name: postgres-sallahli
         image: postgres:12
         env:
           - name: POSTGRES_USER
@@ -40,7 +40,7 @@ spec:
         - containerPort: 5432
           name: postgres-db
         volumeMounts:
-        - name: postgres-clinic-pvc
+        - name: postgres-sallahli-pvc
           mountPath: /var/lib/postgresql/data
 
         livenessProbe:
@@ -67,21 +67,21 @@ spec:
           timeoutSeconds: 3
 
       volumes:
-      - name: postgres-clinic-pvc
+      - name: postgres-sallahli-pvc
         persistentVolumeClaim:
-          claimName: postgres-clinic-pvc
+          claimName: postgres-sallahli-pvc
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgres-clinic
+  name: postgres-sallahli
   labels:
-    app: postgres-clinic
+    app: postgres-sallahli
 spec:
   ports:
   - port: 5432
-    name: postgres-clinic
+    name: postgres-sallahli
   selector:
-    app: postgres-clinic
+    app: postgres-sallahli
 
