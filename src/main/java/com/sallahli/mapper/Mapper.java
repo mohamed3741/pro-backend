@@ -16,7 +16,7 @@ public interface Mapper<M, D> {
 
     Set<D> toDtos(Set<M> models);
 
-    Class<M> getModelClass();
+    default Class<M> getModelClass() {
+        return null;
+    }
 }
-
-

@@ -15,6 +15,5 @@ public interface ClientRepository extends GenericRepository<Client> {
 
     boolean existsByTel(String tel);
 
-    Client findByUsername(String username);
+    Optional<Client> findByUsername(String username);
 }
-

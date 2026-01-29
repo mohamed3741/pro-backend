@@ -2,10 +2,9 @@ package com.sallahli.mapper;
 
 import com.sallahli.dto.sallahli.ProDTO;
 import com.sallahli.model.Pro;
-import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {CategoryMapper.class, ZoneMapper.class, MediaMapper.class})
+@org.mapstruct.Mapper(componentModel = "spring", uses = {CategoryMapper.class, ZoneMapper.class, MediaMapper.class})
 public interface ProMapper extends Mapper<Pro, ProDTO> {
 
     @Override

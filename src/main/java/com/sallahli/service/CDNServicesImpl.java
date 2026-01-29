@@ -74,11 +74,7 @@ public class CDNServicesImpl {
                 .build());
     }
 
-    /**
-     * Process and upload optimized image version based on image type
-     *
-     * @return
-     */
+    
     private CDNMedia optimizeAndUploadImage(String keyName, ByteArrayResource originalBytes, MediaEnum type) {
         try {
             // Read original image
@@ -136,9 +132,7 @@ public class CDNServicesImpl {
         }
     }
 
-    /**
-     * Get target dimensions and quality based on image type
-     */
+    
     private ImageDimensions getTargetDimensions(MediaEnum type) {
         return switch (type) {
             case LOGO -> new ImageDimensions(512, 512, 0.75f); // Square logos
@@ -151,11 +145,7 @@ public class CDNServicesImpl {
         };
     }
 
-    /**
-     * Convert BufferedImage to WebP format
-     *
-     * @return
-     */
+    
     public byte[] convertToWebP(BufferedImage image, float quality) throws IOException {
         // Encode the BufferedImage into WebP byte array
         byte[] encodedWebP = WebPCodec.encodeImage(image, quality);
@@ -171,17 +161,11 @@ public class CDNServicesImpl {
         return encodedWebP;
     }
 
-    /**
-     * Helper class to store image dimensions and quality
-     */
+    
     private record ImageDimensions(int width, int height, float quality) {
     }
 
-    /**
-     * Delete a file from the CDN
-     *
-     * @param keyName The key name (filename) of the file to delete
-     */
+    
     public void deleteFile(String keyName) {
         if (keyName == null || keyName.trim().isEmpty()) {
             log.warn("Cannot delete file: keyName is null or empty");
@@ -264,13 +248,7 @@ public class CDNServicesImpl {
         }
     }
 
-    /**
-     * Build the delete URL based on the upload URL pattern
-     * 
-     * @param baseUrl The base upload URL from configuration
-     * @param keyName The file key name to delete
-     * @return The constructed delete URL
-     */
+    
     private String buildDeleteUrl(String baseUrl, String keyName) {
         if (baseUrl == null || baseUrl.trim().isEmpty()) {
             throw new IllegalArgumentException("Base URL cannot be null or empty");

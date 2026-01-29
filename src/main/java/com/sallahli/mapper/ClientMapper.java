@@ -2,10 +2,9 @@ package com.sallahli.mapper;
 
 import com.sallahli.dto.sallahli.ClientDTO;
 import com.sallahli.model.Client;
-import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {MediaMapper.class})
+@org.mapstruct.Mapper(componentModel = "spring", uses = { MediaMapper.class, AddressMapper.class })
 public interface ClientMapper extends Mapper<Client, ClientDTO> {
 
     @Override
@@ -21,4 +20,3 @@ public interface ClientMapper extends Mapper<Client, ClientDTO> {
         return Client.class;
     }
 }
-

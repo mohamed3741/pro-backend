@@ -4,6 +4,7 @@ import com.sallahli.model.Enum.ConversationType;
 import com.sallahli.utils.HasTimestamps;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.io.Serial;
 import java.util.List;
@@ -29,8 +30,6 @@ public class Conversation extends HasTimestamps {
     @Column(name = "is_closed")
     private boolean closed = false;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "conversation", orphanRemoval = true, cascade = CascadeType.ALL)
     private List<ConversationParticipant> participants;

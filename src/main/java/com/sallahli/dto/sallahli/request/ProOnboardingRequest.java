@@ -14,10 +14,10 @@ public class ProOnboardingRequest {
     private String tel;
     private String fullName;
     private String email;
-    private Long tradeId; // ServiceCategory ID
-    private Long baseZoneId; // Zone ID
+    private Long tradeId;
+    private Long baseZoneId;
 
-    // KYC documents (media IDs)
+
     private Long cniFrontMediaId;
     private Long cniBackMediaId;
     private Long selfieMediaId;

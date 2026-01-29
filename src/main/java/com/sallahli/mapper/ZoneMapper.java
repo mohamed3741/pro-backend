@@ -2,9 +2,8 @@ package com.sallahli.mapper;
 
 import com.sallahli.dto.sallahli.ZoneDTO;
 import com.sallahli.model.Zone;
-import org.mapstruct.Mapper;
 
-@Mapper(componentModel = "spring")
+@org.mapstruct.Mapper(componentModel = "spring")
 public interface ZoneMapper extends Mapper<Zone, ZoneDTO> {
 
     @Override

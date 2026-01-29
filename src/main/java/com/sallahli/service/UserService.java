@@ -48,7 +48,6 @@ import java.util.*;
 @Slf4j
 public class UserService {
 
-
     @Value("${keycloak.auth-server-url}")
     public String serverURL;
     @Value("${keycloak.realm}")
@@ -64,20 +63,17 @@ public class UserService {
     @Autowired
     private KeycloakProvider keycloakProvider;
 
-
     @Autowired
     private SmsService smsService;
 
     @Autowired
     private WhatsappService whatsappService;
 
-
     @Autowired
     private UserMapper mapper;
 
     @Autowired
     private UserOtpExpirationRepository userOtpExpirationRepository;
-
 
     // ==================== HELPER METHODS ====================
 
@@ -98,7 +94,8 @@ public class UserService {
 
         while (true) {
             List<UserRepresentation> batch = getUsersResource().list(scanFirst, scanBatchSize);
-            if (batch == null || batch.isEmpty()) break;
+            if (batch == null || batch.isEmpty())
+                break;
 
             for (UserRepresentation u : batch) {
                 List<FederatedIdentityRepresentation> fed;
@@ -109,14 +106,16 @@ public class UserService {
                 }
 
                 boolean isSocial = fed != null && !fed.isEmpty();
-                if (!isSocial) continue;
+                if (!isSocial)
+                    continue;
 
                 if (providerFilter != null) {
                     boolean matches = fed.stream()
                             .map(FederatedIdentityRepresentation::getIdentityProvider)
                             .filter(Objects::nonNull)
                             .anyMatch(idp -> idp.equalsIgnoreCase(providerFilter));
-                    if (!matches) continue;
+                    if (!matches)
+                        continue;
                 }
 
                 if (socialSeen >= offset && content.size() < size) {
@@ -131,13 +130,14 @@ public class UserService {
             }
 
             scanFirst += scanBatchSize;
-            if (hasNext) break;
-            if (batch.size() < scanBatchSize) break;
+            if (hasNext)
+                break;
+            if (batch.size() < scanBatchSize)
+                break;
         }
 
         return new SliceImpl<>(content, pageable, hasNext);
     }
-
 
     private UserDTO toUserDtoFromKeycloak(UserRepresentation u, List<FederatedIdentityRepresentation> fed) {
         UserDTO dto = new UserDTO();
@@ -167,7 +167,6 @@ public class UserService {
         return dto;
     }
 
-
     private UsersResource getUsersResource() {
         return keycloak.realm(realm).users();
     }
@@ -192,7 +191,6 @@ public class UserService {
         return null;
     }
 
-
     public UserRepresentation getUserByUsernameOrEmailOrThrow(String usernameOrEmail) {
         UserRepresentation user = findUserByUsernameOrEmail(usernameOrEmail);
         if (user == null) {
@@ -200,7 +198,6 @@ public class UserService {
         }
         return user;
     }
-
 
     private UserResource getUserResource(String userId) {
         return getUsersResource().get(userId);
@@ -210,8 +207,7 @@ public class UserService {
         try {
             Keycloak tempKeycloak = keycloakProvider.newKeycloakBuilderWithPasswordCredentials(
                     usernameOrEmail,
-                    password
-            ).build();
+                    password).build();
 
             AccessTokenResponse response = tempKeycloak.tokenManager().getAccessToken();
             return response != null && response.getToken() != null;
@@ -226,8 +222,7 @@ public class UserService {
     public AccessTokenResponse authenticateUser(String usernameOrEmail, String password) {
         Keycloak keycloak = keycloakProvider.newKeycloakBuilderWithPasswordCredentials(
                 usernameOrEmail,
-                password
-        ).build();
+                password).build();
         return keycloak.tokenManager().getAccessToken();
     }
 
@@ -246,7 +241,7 @@ public class UserService {
         return String.format("%06d", random.nextInt(1000000));
     }
 
-// ==================== PASSWORD MANAGEMENT ====================
+    // ==================== PASSWORD MANAGEMENT ====================
 
     private static CredentialRepresentation createPasswordCredentials(String password) {
         CredentialRepresentation passwordCredentials = new CredentialRepresentation();
@@ -263,13 +258,11 @@ public class UserService {
         return passwordCredentials;
     }
 
-
     public boolean verifyOldPassword(String usernameOrEmail, String oldPassword) {
         try {
             Keycloak tempKeycloak = keycloakProvider.newKeycloakBuilderWithPasswordCredentials(
                     usernameOrEmail,
-                    oldPassword
-            ).build();
+                    oldPassword).build();
 
             AccessTokenResponse response = tempKeycloak.tokenManager().getAccessToken();
             return response != null && response.getToken() != null;
@@ -279,6 +272,17 @@ public class UserService {
         }
     }
 
+    public boolean changePassword(String username, String newPassword) {
+        try {
+            UserRepresentation user = getUserByUsernameOrEmailOrThrow(username);
+            CredentialRepresentation credential = createPasswordCredentials(newPassword);
+            getUserResource(user.getId()).resetPassword(credential);
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to change password for user {}", username, e);
+            return false;
+        }
+    }
 
     @Transactional
     public UserDTO signup(UserDTO user) {
@@ -296,13 +300,11 @@ public class UserService {
             } else {
                 throw new BadRequestException(
                         String.format("Error happened while registering user to keycloak codeStatus=%d",
-                                response.getStatus())
-                );
+                                response.getStatus()));
             }
         } catch (Exception e) {
             throw new BadRequestException(
-                    String.format("Error happened while registering user to keycloak: %s", e.getMessage())
-            );
+                    String.format("Error happened while registering user to keycloak: %s", e.getMessage()));
         }
     }
 
@@ -358,14 +360,12 @@ public class UserService {
         user.setUsername(newUsername);
         Map<String, String> attributes = Map.of(
                 KeycloakUtils.PHONE_NUMBER_ATTRIBUTE, newUsername,
-                KeycloakUtils.IS_VERIFIED_ATTRIBUTE, "false"
-        );
+                KeycloakUtils.IS_VERIFIED_ATTRIBUTE, "false");
         updateUserAttributes(user, attributes);
 
         // Generate and send verification code for the new username
         generateAndSendVerificationCode(newUsername, DeliveryMethod.WHATSAPP);
     }
-
 
     public String generateAndSendVerificationCode(String username, DeliveryMethod deliveryMethod) {
         UserRepresentation user = getUserByUsernameOrEmailOrThrow(username);
@@ -376,14 +376,12 @@ public class UserService {
         Map<String, String> attributes = Map.of(
                 KeycloakUtils.VERIFICATION_CODE_ATTRIBUTE, code,
                 KeycloakUtils.VERIFICATION_CODE_EXPIRATION_ATTRIBUTE,
-                LocalDateTime.now().plusMinutes(5).toString()
-        );
+                LocalDateTime.now().plusMinutes(5).toString());
         updateUserAttributes(user, attributes);
 
         sendVerificationCode(user, deliveryMethod);
         return code;
     }
-
 
     @Async
     public void sendVerificationCode(UserRepresentation user, DeliveryMethod method) {
@@ -404,7 +402,6 @@ public class UserService {
                 default -> throw new BadRequestException("Invalid method");
             }
 
-
         } catch (Exception e) {
             log.error("Failed to send otp password", e);
 
@@ -412,15 +409,14 @@ public class UserService {
 
     }
 
-// ==================== PHONE NUMBER MANAGEMENT ====================
+    // ==================== PHONE NUMBER MANAGEMENT ====================
 
     public UserDTO registerPhoneNumber(String tel, String username) {
         UserRepresentation kcUser = getUserByUsernameOrEmailOrThrow(username);
 
         Map<String, String> attributes = Map.of(
                 KeycloakUtils.PHONE_NUMBER_ATTRIBUTE, tel,
-                KeycloakUtils.IS_VERIFIED_ATTRIBUTE, "false"
-        );
+                KeycloakUtils.IS_VERIFIED_ATTRIBUTE, "false");
 
         updateUserAttributes(kcUser, attributes);
         generateAndSendVerificationCode(username, DeliveryMethod.SMS);
@@ -453,7 +449,7 @@ public class UserService {
         return telVerification;
     }
 
-// ==================== ROLE MANAGEMENT ====================
+    // ==================== ROLE MANAGEMENT ====================
 
     public void saveRole(String username, UserRoleEnum roleEnum) {
         RoleRepresentation userRole = getOrCreateRole(roleEnum);
@@ -491,7 +487,7 @@ public class UserService {
         }
     }
 
-// ==================== USER QUERIES ====================
+    // ==================== USER QUERIES ====================
 
     public List<UserRepresentation> searchByUsername(String username) {
         return getUsersResource().searchByUsername(username, true);

@@ -4,10 +4,9 @@ import com.sallahli.dto.OnlineTransactionDTO;
 import com.sallahli.dto.PaymentDTO;
 import com.sallahli.model.OnlineTransaction;
 import com.sallahli.model.Payment;
-import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@org.mapstruct.Mapper(componentModel = "spring")
 public interface PaymentMapper extends Mapper<Payment, PaymentDTO> {
 
     @Override

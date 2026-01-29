@@ -2,10 +2,10 @@ package com.sallahli.mapper;
 
 import com.sallahli.dto.chat.ConversationParticipantDto;
 import com.sallahli.model.ConversationParticipant;
-import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
-@Mapper(componentModel = "spring")
+@org.mapstruct.Mapper(componentModel = "spring")
 public interface ConversationParticipantsMapper extends Mapper<ConversationParticipant, ConversationParticipantDto> {
 
     @Override
@@ -15,7 +15,7 @@ public interface ConversationParticipantsMapper extends Mapper<ConversationParti
     @Mapping(target = "logo", ignore = true)
     ConversationParticipantDto toDto(ConversationParticipant model);
 
-    @Mapping(target = "conversation", ignore = true)
+    @Named("toDtoWithoutConversation")
     @Mapping(target = "firstName", ignore = true)
     @Mapping(target = "lastName", ignore = true)
     @Mapping(target = "username", ignore = true)

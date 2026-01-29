@@ -1,11 +1,13 @@
 package com.sallahli.dto.sallahli;
 
+import com.sallahli.dto.MediaDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @Builder
@@ -38,5 +40,5 @@ public class ClientDTO {
     private Long referredBy;
     private Long referralCounter;
     private String loginProvider;
+    private List<AddressDTO> addresses;
 }
-

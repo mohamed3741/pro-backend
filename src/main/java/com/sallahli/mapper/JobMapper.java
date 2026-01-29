@@ -2,10 +2,9 @@ package com.sallahli.mapper;
 
 import com.sallahli.dto.sallahli.JobDTO;
 import com.sallahli.model.Job;
-import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {CustomerRequestMapper.class, LeadOfferMapper.class, ProMapper.class, ClientMapper.class})
+@org.mapstruct.Mapper(componentModel = "spring", uses = {CustomerRequestMapper.class, LeadOfferMapper.class, ProMapper.class, ClientMapper.class})
 public interface JobMapper extends Mapper<Job, JobDTO> {
 
     @Override

@@ -1,5 +1,6 @@
 package com.sallahli.service;
 
+import com.sallahli.dto.PaymentDTO;
 import com.sallahli.dto.payment.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,7 +14,6 @@ public class PaymentService {
     private final SedadService sedadService;
     private final BankilyService bankilyService;
     private final MasriviService masriviService;
-    private final WalletService walletService;
 
     public PaymentDTO createPayment(PaymentRequestDto request) {
         switch (request.getPaymentMethodType()) {

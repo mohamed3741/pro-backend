@@ -36,16 +36,13 @@ public class SedadService {
 
     private final OnlineTransactionRepository onlineTransactionRepository;
     private final PaymentRepository paymentRepository;
-    private final WalletService walletService;
     private final PaymentMapper paymentMapper;
 
     public SedadService(OnlineTransactionRepository onlineTransactionRepository,
                        PaymentRepository paymentRepository,
-                       WalletService walletService,
                        PaymentMapper paymentMapper) {
         this.onlineTransactionRepository = onlineTransactionRepository;
         this.paymentRepository = paymentRepository;
-        this.walletService = walletService;
         this.paymentMapper = paymentMapper;
     }
 
@@ -154,10 +151,7 @@ public class SedadService {
             payment.setPaymentRef(dto.getNumeroRecu());
             paymentRepository.save(payment);
 
-            // Handle payment success based on purpose
-            if (Objects.requireNonNull(payment.getPaymentPurpose()) == PaymentPurpose.RECHARGE_WALLET) {
-                walletService.handleWalletRecharge(payment.getId(), WalletStatus.CONFIRMED);
-            }
+            
 
             return ResponseEntity.ok(responseBody);
 

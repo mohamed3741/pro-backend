@@ -86,27 +86,15 @@ spring:
           /management/health/liveness,
           /users/login,
           /users/gen-googleauth-otp,
-          /users/verify-googleauth-otp/**,
-          /users/exchange-token,
-          /*/signup,
+          /users/verify-googleauth-otpsignup,
           /*/*/signup,
           /*/me,/*/*/me,
           /users/check-code,
           /*/check-code,
-          /*/generate-code/**,
-          /*/login-with-otp,
-          /*/set-phone-number/**,
-          /*/*/generate-code,
-          /*/*/set-phone-number/**,
-          /*/refresh-token,
-          /*/phone-verification/**,
-          /*/send-otp/**,
-          /*/*/send-otp/**,
-          /ws,
-          /sockjs,
-          /client/update-names,
-          /api/translations/**,
-          /*/reset-password
+          /*/generate-codelogin-with-otp,
+          /*/set-phone-number*/generate-code,
+          /*/*/set-phone-numberrefresh-token,
+          /*/phone-verificationsend-otp*/send-otpreset-password
     oauth2:
       client:
         provider:
@@ -141,4 +129,42 @@ media-config:
 
 whatsapp:
   bearer-token: ${WHATSAPP_BEARER_TOKEN:your-bearer-token-here}
+
+# ============================================================================
+# Push Notification Configuration
+# ============================================================================
+
+# Firebase Cloud Messaging (FCM) - for Android, iOS, and Web
+firebase:
+  enabled: ${FIREBASE_ENABLED:false}
+  credentials-file: firebase-service-account.json
+  project-id: ${FIREBASE_PROJECT_ID:sallahli-app}
+
+# Apple Push Notification Service (APNs) - for iOS
+apns:
+  production: ${APNS_PRODUCTION:false}
+  
+  # Client iOS App
+  client:
+    enabled: ${APNS_CLIENT_ENABLED:false}
+    key-file: ${APNS_CLIENT_KEY_FILE:apns-client-key.p8}
+    key-id: ${APNS_CLIENT_KEY_ID:XXXXXXXXXX}
+    team-id: ${APNS_CLIENT_TEAM_ID:XXXXXXXXXX}
+    bundle-id: ${APNS_CLIENT_BUNDLE_ID:com.sallahli.client}
+  
+  # Pro iOS App
+  pro:
+    enabled: ${APNS_PRO_ENABLED:false}
+    key-file: ${APNS_PRO_KEY_FILE:apns-pro-key.p8}
+    key-id: ${APNS_PRO_KEY_ID:YYYYYYYYYY}
+    team-id: ${APNS_PRO_TEAM_ID:YYYYYYYYYY}
+    bundle-id: ${APNS_PRO_BUNDLE_ID:com.sallahli.pro}
+
+# Web Push (VAPID) - for browser notifications
+webpush:
+  enabled: ${WEBPUSH_ENABLED:false}
+  vapid-public-key: ${VAPID_PUBLIC_KEY:BKzT3H3f2X9X9X9X9X9X9X9X9X9X9X9X9X9X9X9X9X9X9X9X9X9X9X9X9X9X9X9X9X9}
+  vapid-private-key: ${VAPID_PRIVATE_KEY:YOUR_VAPID_PRIVATE_KEY_HERE}
+  vapid-subject: ${VAPID_SUBJECT:mailto:admin@sallahli.com}
+  ttl: 86400
 

@@ -2,6 +2,7 @@ package com.sallahli.dto.sallahli;
 
 import com.sallahli.dto.MediaDTO;
 import com.sallahli.model.Enum.LeadType;
+import com.sallahli.model.Enum.WorkflowType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,6 +24,6 @@ public class CategoryDTO {
     private LeadType leadType;
     private BigDecimal leadCost;
     private Integer matchLimit;
+    private WorkflowType workflowType;
     private Boolean active;
 }
-

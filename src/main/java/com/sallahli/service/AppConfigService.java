@@ -65,7 +65,7 @@ public class AppConfigService {
 
     @Transactional(readOnly = true)
     public boolean isConfigValid(String etag) {
-        return etag != null && repository.existsByHashAndIsActiveTrue(etag);
+        return etag != null && repository.existsByHashAndActiveTrue(etag);
     }
 
 
@@ -138,7 +138,7 @@ public class AppConfigService {
 
     @Transactional(readOnly = true)
     public List<AppConfigBundleDto> listAllActiveConfigs() {
-        return repository.findByIsActiveTrueOrderByCreatedAtDesc()
+        return repository.findByActiveTrueOrderByCreatedAtDesc()
             .stream()
             .map(mapper::toDto)
             .collect(Collectors.toList());

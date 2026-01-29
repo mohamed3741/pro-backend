@@ -4,6 +4,7 @@ import com.sallahli.dto.sallahli.CategoryDTO;
 import com.sallahli.exceptions.NotFoundException;
 import com.sallahli.mapper.CategoryMapper;
 import com.sallahli.model.Category;
+import com.sallahli.model.Enum.WorkflowType;
 import com.sallahli.model.Media;
 import com.sallahli.repository.CategoryRepository;
 import com.sallahli.repository.MediaRepository;
@@ -24,19 +25,19 @@ public class CategoryService extends AbstractCrudService<Category, CategoryDTO> 
     private final MediaRepository mediaRepository;
     private final CategoryMapper categoryMapper;
 
-    public CategoryService(CategoryRepository categoryRepository, CategoryMapper categoryMapper, MediaRepository mediaRepository) {
+    public CategoryService(CategoryRepository categoryRepository, CategoryMapper categoryMapper,
+            MediaRepository mediaRepository) {
         super(categoryRepository, categoryMapper);
         this.categoryRepository = categoryRepository;
         this.categoryMapper = categoryMapper;
         this.mediaRepository = mediaRepository;
     }
 
+    // ========================================================================
+    // Core CRUD operations
+    // ========================================================================
 
-
-
-    /**
-     * Best practice: return only non-archived categories.
-     */
+    
     @Override
     @Transactional(readOnly = true)
     public List<CategoryDTO> findAll() {
@@ -51,12 +52,56 @@ public class CategoryService extends AbstractCrudService<Category, CategoryDTO> 
         return categoryMapper.toDto(category);
     }
 
-    /**
-     * Resolve relationships (iconMedia) here, not in mapper.
-     */
+    // ========================================================================
+    // Workflow Type Methods
+    // ========================================================================
+
+    
+    @Transactional
+    public CategoryDTO updateWorkflowType(Long categoryId, WorkflowType workflowType) {
+        Category category = categoryRepository.findByIdAndArchivedFalse(categoryId)
+                .orElseThrow(() -> new NotFoundException("Category not found with id: " + categoryId));
+
+        WorkflowType previousType = category.getWorkflowType();
+        category.setWorkflowType(workflowType);
+        Category saved = categoryRepository.save(category);
+
+        log.info("Updated category {} workflow type from {} to {}", categoryId, previousType, workflowType);
+
+        return categoryMapper.toDto(saved);
+    }
+
+    
+    @Transactional(readOnly = true)
+    public List<CategoryDTO> findByWorkflowType(WorkflowType workflowType) {
+        List<Category> categories = categoryRepository.findByWorkflowTypeAndArchivedFalse(workflowType);
+        return categoryMapper.toDtos(categories);
+    }
+
+    
+    @Transactional(readOnly = true)
+    public List<CategoryDTO> findAllActive() {
+        List<Category> categories = categoryRepository.findByActiveAndArchivedFalse(true);
+        return categoryMapper.toDtos(categories);
+    }
+
+    
+    @Transactional(readOnly = true)
+    public CategoryDTO findByCode(String code) {
+        Category category = categoryRepository.findByCodeIgnoreCaseAndArchivedFalse(code)
+                .orElseThrow(() -> new NotFoundException("Category not found with code: " + code));
+        return categoryMapper.toDto(category);
+    }
+
+    // ========================================================================
+    // Relationship handling
+    // ========================================================================
+
+    
     @Override
     protected void applyRelationships(Category entity, CategoryDTO dto) {
-        if (dto == null) return;
+        if (dto == null)
+            return;
 
         if (dto.getIconMedia() != null && dto.getIconMedia().getId() != null) {
             Long mediaId = dto.getIconMedia().getId();
@@ -68,6 +113,9 @@ public class CategoryService extends AbstractCrudService<Category, CategoryDTO> 
         }
     }
 
+    // ========================================================================
+    // Validation hooks
+    // ========================================================================
 
     @Override
     protected void beforePersist(Category entity, CategoryDTO dto, boolean isNew) {
@@ -97,6 +145,11 @@ public class CategoryService extends AbstractCrudService<Category, CategoryDTO> 
             throw new IllegalArgumentException("matchLimit must be > 0");
         }
 
+        // workflowType default
+        if (entity.getWorkflowType() == null) {
+            entity.setWorkflowType(WorkflowType.LEAD_OFFER);
+        }
+
         // active default
         if (entity.getActive() == null) {
             entity.setActive(true);
@@ -113,16 +166,14 @@ public class CategoryService extends AbstractCrudService<Category, CategoryDTO> 
                 throw new IllegalArgumentException("Category code already exists: " + entity.getCode());
             }
         } else {
-            if (entity.getId() != null && categoryRepository.existsByCodeIgnoreCaseAndIdNot(entity.getCode(), entity.getId())) {
+            if (entity.getId() != null
+                    && categoryRepository.existsByCodeIgnoreCaseAndIdNot(entity.getCode(), entity.getId())) {
                 throw new IllegalArgumentException("Category code already exists: " + entity.getCode());
             }
         }
     }
 
-    /**
-     * Best practice: don't hard delete categories because other tables reference them.
-     * Instead, archive + deactivate.
-     */
+    
     @Override
     @Transactional
     public void delete(Long id) {
@@ -136,7 +187,8 @@ public class CategoryService extends AbstractCrudService<Category, CategoryDTO> 
     }
 
     private String normalizeCode(String code) {
-        if (!StringUtils.hasText(code)) return null;
+        if (!StringUtils.hasText(code))
+            return null;
         return code.trim().toUpperCase();
     }
 }

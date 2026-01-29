@@ -12,7 +12,7 @@ public interface PaginatedSearchService<S,T> {
             // Main AND filters
             Specification<T> specification = null;
             if (criteria.getFilters() != null && !criteria.getFilters().isEmpty()) {
-                specification = new ClinicSpecification<>(criteria.getFilters());
+                specification = new SallahliSpecification<>(criteria.getFilters());
 
             } else {
                 System.out.println("No main filters");
@@ -26,7 +26,7 @@ public interface PaginatedSearchService<S,T> {
                 for (int groupIndex = 0; groupIndex < criteria.getOrFilters().size(); groupIndex++) {
                     List<Filter> orFilterGroup = criteria.getOrFilters().get(groupIndex);
                     if (orFilterGroup != null && !orFilterGroup.isEmpty()) {
-                        Specification<T> orGroupSpec = new ClinicSpecification<>(orFilterGroup);
+                        Specification<T> orGroupSpec = new SallahliSpecification<>(orFilterGroup);
                         orSpecs.add(orGroupSpec);
                     }
                 }
