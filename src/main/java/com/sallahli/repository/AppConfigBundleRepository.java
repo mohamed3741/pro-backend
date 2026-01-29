@@ -16,7 +16,7 @@ public interface AppConfigBundleRepository extends GenericRepository<AppConfigBu
     @Query("SELECT a FROM AppConfigBundle a WHERE " +
             "a.app = :app AND " +
             "a.platform = :platform AND " +
-            "a.isActive = true AND " +
+            "a.active = true AND " +
             "(:country IS NULL OR a.country IS NULL OR a.country = :country) " +
             "ORDER BY " +
             "CASE WHEN a.country = :country THEN 1 ELSE 2 END, " +
@@ -28,12 +28,12 @@ public interface AppConfigBundleRepository extends GenericRepository<AppConfigBu
     );
 
 
-    boolean existsByHashAndIsActiveTrue(String hash);
+    boolean existsByHashAndActiveTrue(String hash);
 
     List<AppConfigBundle> findByAppAndPlatformOrderByCreatedAtDesc(AppType app, PlatformType platform);
 
     List<AppConfigBundle> findAllByOrderByCreatedAtDesc();
 
-    List<AppConfigBundle> findByIsActiveTrueOrderByCreatedAtDesc();
+    List<AppConfigBundle> findByActiveTrueOrderByCreatedAtDesc();
 }
 

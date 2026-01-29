@@ -44,7 +44,6 @@ public class BankilyService {
 
     public BankilyService(OnlineTransactionRepository onlineTransactionRepository,
                          PaymentRepository paymentRepository,
-                         WalletService walletService,
                          PaymentMapper paymentMapper) {
         this.onlineTransactionRepository = onlineTransactionRepository;
         this.paymentRepository = paymentRepository;

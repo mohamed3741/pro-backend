@@ -48,11 +48,7 @@ public class Category extends HasTimestamps implements Archivable {
     @Builder.Default
     private Integer matchLimit = 3;
 
-    /**
-     * Workflow strategy for lead distribution:
-     * - LEAD_OFFER: Traditional auction model (leads offered to multiple pros)
-     * - FIRST_CLICK: Uber-style model (first pro to accept wins)
-     */
+    
     @Enumerated(EnumType.STRING)
     @Column(name = "workflow_type", nullable = false)
     @Builder.Default

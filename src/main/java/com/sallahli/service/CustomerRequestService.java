@@ -61,10 +61,7 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
     // Request Creation & Lifecycle
     // ========================================================================
 
-    /**
-     * Create a new customer request.
-     * This will set up the request with OPEN status and link to client/category.
-     */
+    
     @Override
     @Transactional
     public CustomerRequestDTO create(CustomerRequestDTO dto) {
@@ -84,10 +81,7 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
         return getMapper().toDto(saved);
     }
 
-    /**
-     * Broadcast a request to nearby available pros.
-     * The workflow type (LEAD_OFFER or FIRST_CLICK) is determined by the category.
-     */
+    
     @Transactional
     public CustomerRequestDTO broadcastRequest(Long requestId) {
         CustomerRequest request = findCRById(requestId);
@@ -119,9 +113,7 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
         return getMapper().toDto(saved);
     }
 
-    /**
-     * Cancel a customer request.
-     */
+    
     @Transactional
     public CustomerRequestDTO cancelRequest(Long requestId, String reason) {
         CustomerRequest request = findCRById(requestId);
@@ -141,9 +133,7 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
         return getMapper().toDto(saved);
     }
 
-    /**
-     * Mark request as assigned when a pro accepts the lead.
-     */
+    
     @Transactional
     public CustomerRequestDTO assignRequest(Long requestId) {
         CustomerRequest request = findCRById(requestId);
@@ -161,9 +151,7 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
         return getMapper().toDto(saved);
     }
 
-    /**
-     * Mark request as done when job is completed.
-     */
+    
     @Transactional
     public CustomerRequestDTO completeRequest(Long requestId) {
         CustomerRequest request = findCRById(requestId);
@@ -180,45 +168,35 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
     // Query Methods
     // ========================================================================
 
-    /**
-     * Get requests by client.
-     */
+    
     @Transactional(readOnly = true)
     public List<CustomerRequestDTO> findByClientId(Long clientId) {
         List<CustomerRequest> requests = customerRequestRepository.findByClientIdOrderByCreatedAtDesc(clientId);
         return getMapper().toDtos(requests);
     }
 
-    /**
-     * Get requests by status.
-     */
+    
     @Transactional(readOnly = true)
     public List<CustomerRequestDTO> findByStatus(RequestStatus status) {
         List<CustomerRequest> requests = customerRequestRepository.findByStatus(status);
         return getMapper().toDtos(requests);
     }
 
-    /**
-     * Get requests by category and status.
-     */
+    
     @Transactional(readOnly = true)
     public List<CustomerRequestDTO> findByCategoryIdAndStatus(Long categoryId, RequestStatus status) {
         List<CustomerRequest> requests = customerRequestRepository.findByCategoryIdAndStatus(categoryId, status);
         return getMapper().toDtos(requests);
     }
 
-    /**
-     * Get active (broadcasted and not expired) requests.
-     */
+    
     @Transactional(readOnly = true)
     public List<CustomerRequestDTO> findActiveBroadcastedRequests() {
         List<CustomerRequest> requests = customerRequestRepository.findActiveBroadcastedRequests(LocalDateTime.now());
         return getMapper().toDtos(requests);
     }
 
-    /**
-     * Find requests within a geographic bounding box.
-     */
+    
     @Transactional(readOnly = true)
     public List<CustomerRequestDTO> findRequestsInBoundingBox(Double minLat, Double maxLat, Double minLng,
             Double maxLng) {
@@ -231,9 +209,7 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
     // Expiration handling
     // ========================================================================
 
-    /**
-     * Find and expire old open requests.
-     */
+    
     @Transactional
     public int expireOldRequests(int hoursOld) {
         LocalDateTime cutoff = LocalDateTime.now().minusHours(hoursOld);

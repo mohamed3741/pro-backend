@@ -22,11 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-/**
- * Push Notification Service.
- * Handles sending push notifications to iOS (APNs), Android (FCM), and Web
- * (FCM/VAPID).
- */
+
 @Service
 @Slf4j
 public class PushNotificationService {
@@ -42,9 +38,9 @@ public class PushNotificationService {
     public PushNotificationService(
             UserDeviceRepository userDeviceRepository,
             UserDeviceService userDeviceService,
-            FirebaseMessaging firebaseMessaging,
-            @Qualifier("clientApnsClient") ApnsClient clientApnsClient,
-            @Qualifier("proApnsClient") ApnsClient proApnsClient,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) FirebaseMessaging firebaseMessaging,
+            @Qualifier("clientApnsClient") @org.springframework.beans.factory.annotation.Autowired(required = false) ApnsClient clientApnsClient,
+            @Qualifier("proApnsClient") @org.springframework.beans.factory.annotation.Autowired(required = false) ApnsClient proApnsClient,
             ApnsConfig apnsConfig,
             WebPushConfig webPushConfig) {
         this.userDeviceRepository = userDeviceRepository;
@@ -60,9 +56,7 @@ public class PushNotificationService {
     // High-Level Send Methods
     // ========================================================================
 
-    /**
-     * Send notification to a specific Pro.
-     */
+    
     public void sendToPro(Long proId, Notification notification) {
         List<UserDevice> devices = userDeviceRepository.findByProId(proId);
 
@@ -76,9 +70,7 @@ public class PushNotificationService {
         }
     }
 
-    /**
-     * Send notification to a specific Client.
-     */
+    
     public void sendToClient(Long clientId, Notification notification) {
         List<UserDevice> devices = userDeviceRepository.findByClientId(clientId);
 
@@ -92,9 +84,7 @@ public class PushNotificationService {
         }
     }
 
-    /**
-     * Send notification to all devices of a specific profile type.
-     */
+    
     public void sendToAllByProfileType(ProfileType profileType, Notification notification) {
         List<UserDevice> devices = userDeviceRepository.findByProfileType(profileType);
         log.info("Sending notification to {} {} devices", devices.size(), profileType);
@@ -104,9 +94,7 @@ public class PushNotificationService {
         }
     }
 
-    /**
-     * Send notification to a specific device token.
-     */
+    
     public void sendToToken(String token, Notification notification, ProfileType profileType) {
         userDeviceRepository.findByToken(token).ifPresent(device -> sendToDevice(device, notification, profileType));
     }
@@ -334,9 +322,7 @@ public class PushNotificationService {
     // Topic-Based Notifications (for broadcasts)
     // ========================================================================
 
-    /**
-     * Send notification to a topic (all subscribers).
-     */
+    
     public void sendToTopic(String topic, Notification notification) {
         if (firebaseMessaging == null) {
             log.warn("Firebase Messaging not configured. Cannot send topic notification.");
@@ -361,9 +347,7 @@ public class PushNotificationService {
         }
     }
 
-    /**
-     * Subscribe a device to a topic.
-     */
+    
     public void subscribeToTopic(String token, String topic) {
         if (firebaseMessaging == null) {
             return;
@@ -377,9 +361,7 @@ public class PushNotificationService {
         }
     }
 
-    /**
-     * Unsubscribe a device from a topic.
-     */
+    
     public void unsubscribeFromTopic(String token, String topic) {
         if (firebaseMessaging == null) {
             return;

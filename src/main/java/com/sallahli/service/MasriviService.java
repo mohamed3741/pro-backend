@@ -29,16 +29,13 @@ public class MasriviService {
     private String sessionUrl;
 
     private final PaymentRepository paymentRepository;
-    private final WalletService walletService;
     private final OnlineTransactionRepository onlineTransactionRepository;
     private final PaymentMapper paymentMapper;
 
     public MasriviService(PaymentRepository paymentRepository,
-                         WalletService walletService,
                          OnlineTransactionRepository onlineTransactionRepository,
                          PaymentMapper paymentMapper) {
         this.paymentRepository = paymentRepository;
-        this.walletService = walletService;
         this.onlineTransactionRepository = onlineTransactionRepository;
         this.paymentMapper = paymentMapper;
     }
@@ -119,10 +116,7 @@ public class MasriviService {
                 payment.setStatus(TransactionStatus.SUCCEEDED);
                 payment = paymentRepository.save(payment);
 
-                // Handle payment success based on purpose
-                switch (payment.getPaymentPurpose()) {
-                    case RECHARGE_WALLET -> walletService.handleWalletRecharge(payment.getId(), com.sallahli.model.Enum.WalletStatus.CONFIRMED);
-                }
+
 
                 return ResponseEntity.ok("CONFIRMED");
             } else {
@@ -133,10 +127,7 @@ public class MasriviService {
                 payment.setStatus(TransactionStatus.FAILED);
                 payment = paymentRepository.save(payment);
 
-                // Handle payment failure
-                switch (payment.getPaymentPurpose()) {
-                    case RECHARGE_WALLET -> walletService.handleWalletRecharge(payment.getId(), com.sallahli.model.Enum.WalletStatus.CANCELED);
-                }
+
 
                 return ResponseEntity.ok("CANCELED");
             }

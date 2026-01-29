@@ -587,11 +587,11 @@ CREATE TABLE IF NOT EXISTS client_address_relation (
     );
 
 ALTER TABLE client_address_relation
-    ADD CONSTRAINT IF NOT EXISTS fk_client_address_client
+    ADD CONSTRAINT fk_client_address_client
     FOREIGN KEY (client_id) REFERENCES client(id) ON DELETE CASCADE;
 
 ALTER TABLE client_address_relation
-    ADD CONSTRAINT IF NOT EXISTS fk_client_address_address
+    ADD CONSTRAINT fk_client_address_address
     FOREIGN KEY (address_id) REFERENCES address(id) ON DELETE CASCADE;
 
 CREATE INDEX IF NOT EXISTS idx_client_address_client_id ON client_address_relation(client_id);

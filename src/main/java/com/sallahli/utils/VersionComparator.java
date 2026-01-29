@@ -5,15 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class VersionComparator {
 
-    /**
-     * Checks if the given version is within the specified min-max range (inclusive).
-     * Supports semantic versioning (e.g., "1.2.3") and handles null ranges.
-     *
-     * @param version the version to check
-     * @param minVersion the minimum version (inclusive), null means no minimum
-     * @param maxVersion the maximum version (inclusive), null means no maximum
-     * @return true if version is within range, false otherwise
-     */
+    
     public static boolean isInRange(String version, String minVersion, String maxVersion) {
         if (version == null || version.trim().isEmpty()) {
             return false;
@@ -48,13 +40,7 @@ public class VersionComparator {
         }
     }
 
-    /**
-     * Compares two version strings using semantic versioning rules.
-     * Returns:
-     * - negative if version1 < version2
-     * - 0 if version1 == version2
-     * - positive if version1 > version2
-     */
+    
     private static int compareVersions(String version1, String version2) {
         if (version1.equals(version2)) {
             return 0;
@@ -77,10 +63,7 @@ public class VersionComparator {
         return 0;
     }
 
-    /**
-     * Parses a version part (major, minor, patch) to integer.
-     * Handles non-numeric parts by returning 0.
-     */
+    
     private static int parseVersionPart(String part) {
         try {
             // Remove any non-numeric prefix/suffix (e.g., "1-beta" -> "1")

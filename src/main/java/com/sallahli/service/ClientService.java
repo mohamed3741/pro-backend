@@ -46,9 +46,7 @@ public class ClientService extends AbstractCrudService<Client, ClientDTO> {
     // Self-Service: Registration
     // ========================================================================
 
-    /**
-     * Register a new client (self-signup).
-     */
+    
     @Transactional
     public ClientDTO signup(ClientDTO dto) {
         // Validate required fields
@@ -67,9 +65,7 @@ public class ClientService extends AbstractCrudService<Client, ClientDTO> {
         return created;
     }
 
-    /**
-     * Client updates their own profile information.
-     */
+    
     @Transactional
     public ClientDTO updateProfile(Long clientId, ClientDTO dto) {
         Client client = findClientById(clientId);
@@ -99,9 +95,7 @@ public class ClientService extends AbstractCrudService<Client, ClientDTO> {
         return getMapper().toDto(saved);
     }
 
-    /**
-     * Get client's own profile.
-     */
+    
     @Transactional(readOnly = true)
     public ClientDTO getMyProfile(Long clientId) {
         return findById(clientId);
@@ -111,9 +105,7 @@ public class ClientService extends AbstractCrudService<Client, ClientDTO> {
     // Client Lookup
     // ========================================================================
 
-    /**
-     * Find client by telephone number.
-     */
+    
     @Transactional(readOnly = true)
     public ClientDTO findByTel(String tel) {
         Client client = clientRepository.findByTel(tel)
@@ -121,17 +113,13 @@ public class ClientService extends AbstractCrudService<Client, ClientDTO> {
         return getMapper().toDto(client);
     }
 
-    /**
-     * Check if client exists by telephone.
-     */
+    
     @Transactional(readOnly = true)
     public boolean existsByTel(String tel) {
         return clientRepository.findByTel(tel).isPresent();
     }
 
-    /**
-     * Find client by customer ID.
-     */
+    
     @Transactional(readOnly = true)
     public ClientDTO findByCustomerId(String customerId) {
         Client client = clientRepository.findByCustomerId(customerId)
@@ -139,9 +127,7 @@ public class ClientService extends AbstractCrudService<Client, ClientDTO> {
         return getMapper().toDto(client);
     }
 
-    /**
-     * Find client by username.
-     */
+    
     @Transactional(readOnly = true)
     public ClientDTO findByUsername(String username) {
         Client client = clientRepository.findByUsername(username)
@@ -169,9 +155,7 @@ public class ClientService extends AbstractCrudService<Client, ClientDTO> {
         }
     }
 
-    /**
-     * Soft delete (archive) a client.
-     */
+    
     @Override
     @Transactional
     public void delete(Long id) {

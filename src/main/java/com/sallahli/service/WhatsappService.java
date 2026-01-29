@@ -35,11 +35,7 @@ public class WhatsappService {
             .connectTimeout(Duration.ofSeconds(10))
             .build();
 
-    /**
-     * Send a text message via WhatsApp
-     * @param to Recipient phone number
-     * @param message Message text to send
-     */
+    
     public void sendText(String to, String message) {
         Objects.requireNonNull(to, "to must not be null");
         Objects.requireNonNull(message, "message must not be null");
@@ -51,11 +47,7 @@ public class WhatsappService {
         sendJson(INSTANCE_URL + SEND_MESSAGE_PATH, payload, bearerToken);
     }
 
-    /**
-     * Send OTP verification code via WhatsApp
-     * @param code Verification code
-     * @param phoneNumber Recipient phone number
-     */
+    
     public void sendOTP(String code, String phoneNumber) {
         Objects.requireNonNull(code, "code must not be null");
         Objects.requireNonNull(phoneNumber, "phoneNumber must not be null");
@@ -64,11 +56,7 @@ public class WhatsappService {
         sendText(phoneNumber, message);
     }
 
-    /**
-     * Send temporary password via WhatsApp
-     * @param temporaryPassword Temporary password
-     * @param phoneNumber Recipient phone number
-     */
+    
     public void sendTmpPassword(String temporaryPassword, String phoneNumber) {
         Objects.requireNonNull(temporaryPassword, "temporaryPassword must not be null");
         Objects.requireNonNull(phoneNumber, "phoneNumber must not be null");

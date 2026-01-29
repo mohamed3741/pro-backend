@@ -37,9 +37,7 @@ public class CategoryService extends AbstractCrudService<Category, CategoryDTO> 
     // Core CRUD operations
     // ========================================================================
 
-    /**
-     * Best practice: return only non-archived categories.
-     */
+    
     @Override
     @Transactional(readOnly = true)
     public List<CategoryDTO> findAll() {
@@ -58,14 +56,7 @@ public class CategoryService extends AbstractCrudService<Category, CategoryDTO> 
     // Workflow Type Methods
     // ========================================================================
 
-    /**
-     * Update the workflow type for a category.
-     * This determines whether the category uses LEAD_OFFER or FIRST_CLICK mode.
-     *
-     * @param categoryId   The category ID
-     * @param workflowType The new workflow type (LEAD_OFFER or FIRST_CLICK)
-     * @return Updated category DTO
-     */
+    
     @Transactional
     public CategoryDTO updateWorkflowType(Long categoryId, WorkflowType workflowType) {
         Category category = categoryRepository.findByIdAndArchivedFalse(categoryId)
@@ -80,30 +71,21 @@ public class CategoryService extends AbstractCrudService<Category, CategoryDTO> 
         return categoryMapper.toDto(saved);
     }
 
-    /**
-     * Find categories by workflow type.
-     *
-     * @param workflowType The workflow type to filter by
-     * @return List of categories with the specified workflow type
-     */
+    
     @Transactional(readOnly = true)
     public List<CategoryDTO> findByWorkflowType(WorkflowType workflowType) {
         List<Category> categories = categoryRepository.findByWorkflowTypeAndArchivedFalse(workflowType);
         return categoryMapper.toDtos(categories);
     }
 
-    /**
-     * Find all active categories (non-archived and active=true).
-     */
+    
     @Transactional(readOnly = true)
     public List<CategoryDTO> findAllActive() {
         List<Category> categories = categoryRepository.findByActiveAndArchivedFalse(true);
         return categoryMapper.toDtos(categories);
     }
 
-    /**
-     * Find category by code.
-     */
+    
     @Transactional(readOnly = true)
     public CategoryDTO findByCode(String code) {
         Category category = categoryRepository.findByCodeIgnoreCaseAndArchivedFalse(code)
@@ -115,9 +97,7 @@ public class CategoryService extends AbstractCrudService<Category, CategoryDTO> 
     // Relationship handling
     // ========================================================================
 
-    /**
-     * Resolve relationships (iconMedia) here, not in mapper.
-     */
+    
     @Override
     protected void applyRelationships(Category entity, CategoryDTO dto) {
         if (dto == null)
@@ -193,11 +173,7 @@ public class CategoryService extends AbstractCrudService<Category, CategoryDTO> 
         }
     }
 
-    /**
-     * Best practice: don't hard delete categories because other tables reference
-     * them.
-     * Instead, archive + deactivate.
-     */
+    
     @Override
     @Transactional
     public void delete(Long id) {

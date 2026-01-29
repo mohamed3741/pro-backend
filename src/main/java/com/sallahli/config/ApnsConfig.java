@@ -13,10 +13,7 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
-/**
- * Apple Push Notification Service (APNs) Configuration.
- * Supports iOS push notifications for both Client and Pro apps.
- */
+
 @Configuration
 @Slf4j
 public class ApnsConfig {

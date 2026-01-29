@@ -64,9 +64,7 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     // Pro Registration & Profile
     // ========================================================================
 
-    /**
-     * Find pro by telephone number.
-     */
+    
     @Transactional(readOnly = true)
     public ProDTO findByTel(String tel) {
         Pro pro = proRepository.findByTel(tel)
@@ -74,9 +72,7 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         return getMapper().toDto(pro);
     }
 
-    /**
-     * Check if pro exists by telephone.
-     */
+    
     @Transactional(readOnly = true)
     public boolean existsByTel(String tel) {
         return proRepository.findByTel(tel).isPresent();
@@ -86,10 +82,7 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     // Self-Service: Registration & Signup
     // ========================================================================
 
-    /**
-     * Register a new pro (self-signup).
-     * Creates a new pro account with PENDING KYC status.
-     */
+    
     @Transactional
     public ProDTO signup(ProDTO dto) {
         // Validate required fields for signup
@@ -114,9 +107,7 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         return created;
     }
 
-    /**
-     * Pro updates their own profile information.
-     */
+    
     @Transactional
     public ProDTO updateProfile(Long proId, ProDTO dto) {
         Pro pro = findProById(proId);
@@ -152,10 +143,7 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         return getMapper().toDto(saved);
     }
 
-    /**
-     * Pro submits KYC documents for verification.
-     * Sets status to PENDING if currently NOT_SUBMITTED or REJECTED.
-     */
+    
     @Transactional
     public ProDTO submitKycDocuments(Long proId, Long cniFrontMediaId, Long cniBackMediaId, Long selfieMediaId,
             Long tradeDocMediaId) {
@@ -200,9 +188,7 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         return getMapper().toDto(saved);
     }
 
-    /**
-     * Pro updates their current location.
-     */
+    
     @Transactional
     public ProDTO updateLocation(Long proId, Double latitude, Double longitude) {
         Pro pro = findProById(proId);
@@ -216,41 +202,31 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         return getMapper().toDto(saved);
     }
 
-    /**
-     * Pro goes online (starts accepting leads).
-     */
+    
     @Transactional
     public ProDTO goOnline(Long proId) {
         return setOnlineStatus(proId, true);
     }
 
-    /**
-     * Pro goes offline (stops accepting leads).
-     */
+    
     @Transactional
     public ProDTO goOffline(Long proId) {
         return setOnlineStatus(proId, false);
     }
 
-    /**
-     * Pro updates their low balance notification threshold.
-     */
+    
     @Transactional
     public ProDTO updateMyLowBalanceThreshold(Long proId, Long threshold) {
         return updateLowBalanceThreshold(proId, threshold);
     }
 
-    /**
-     * Get pro's own profile.
-     */
+    
     @Transactional(readOnly = true)
     public ProDTO getMyProfile(Long proId) {
         return findById(proId);
     }
 
-    /**
-     * Get pro's KYC status.
-     */
+    
     @Transactional(readOnly = true)
     public KycStatus getMyKycStatus(Long proId) {
         Pro pro = findProById(proId);
@@ -261,26 +237,20 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     // KYC Management (Admin)
     // ========================================================================
 
-    /**
-     * Get pros by KYC status.
-     */
+    
     @Transactional(readOnly = true)
     public List<ProDTO> findByKycStatus(KycStatus kycStatus) {
         List<Pro> pros = proRepository.findByKycStatus(kycStatus);
         return getMapper().toDtos(pros);
     }
 
-    /**
-     * Get pending KYC applications.
-     */
+    
     @Transactional(readOnly = true)
     public List<ProDTO> findPendingKycApplications() {
         return findByKycStatus(KycStatus.PENDING);
     }
 
-    /**
-     * Approve a pro's KYC application.
-     */
+    
     @Transactional
     public ProDTO approveKyc(Long proId, Long approvedBy) {
         Pro pro = findProById(proId);
@@ -300,9 +270,7 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         return getMapper().toDto(saved);
     }
 
-    /**
-     * Reject a pro's KYC application.
-     */
+    
     @Transactional
     public ProDTO rejectKyc(Long proId, String reason) {
         Pro pro = findProById(proId);
@@ -323,9 +291,7 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     // Online/Availability Status
     // ========================================================================
 
-    /**
-     * Set pro online status.
-     */
+    
     @Transactional
     public ProDTO setOnlineStatus(Long proId, boolean online) {
         Pro pro = findProById(proId);
@@ -348,27 +314,21 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         return getMapper().toDto(saved);
     }
 
-    /**
-     * Get all online pros.
-     */
+    
     @Transactional(readOnly = true)
     public List<ProDTO> findOnlinePros() {
         List<Pro> pros = proRepository.findByOnlineTrue();
         return getMapper().toDtos(pros);
     }
 
-    /**
-     * Get available pros (online, approved, active, with sufficient balance).
-     */
+    
     @Transactional(readOnly = true)
     public List<ProDTO> findAvailablePros(Long minBalance) {
         List<Pro> pros = proRepository.findAvailablePros(minBalance);
         return getMapper().toDtos(pros);
     }
 
-    /**
-     * Get available pros by trade (category).
-     */
+    
     @Transactional(readOnly = true)
     public List<ProDTO> findAvailableProsByTrade(Long tradeId, Long minBalance) {
         List<Pro> pros = proRepository.findAvailableProsByTrade(tradeId, minBalance);
@@ -379,9 +339,7 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     // Account Management
     // ========================================================================
 
-    /**
-     * Activate a pro account.
-     */
+    
     @Transactional
     public ProDTO activateAccount(Long proId) {
         Pro pro = findProById(proId);
@@ -391,9 +349,7 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         return getMapper().toDto(saved);
     }
 
-    /**
-     * Deactivate a pro account.
-     */
+    
     @Transactional
     public ProDTO deactivateAccount(Long proId) {
         Pro pro = findProById(proId);
@@ -404,9 +360,7 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         return getMapper().toDto(saved);
     }
 
-    /**
-     * Archive (soft delete) a pro.
-     */
+    
     @Override
     @Transactional
     public void delete(Long id) {
@@ -422,9 +376,7 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     // Low Balance Threshold
     // ========================================================================
 
-    /**
-     * Update low balance threshold.
-     */
+    
     @Transactional
     public ProDTO updateLowBalanceThreshold(Long proId, Long threshold) {
         if (threshold < 0) {
@@ -444,17 +396,13 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     // Statistics
     // ========================================================================
 
-    /**
-     * Get count of approved active pros.
-     */
+    
     @Transactional(readOnly = true)
     public Long countApprovedActivePros() {
         return proRepository.countApprovedActivePros();
     }
 
-    /**
-     * Get average rating across all pros.
-     */
+    
     @Transactional(readOnly = true)
     public Double getAverageRating() {
         return proRepository.getAverageRating();

@@ -47,10 +47,7 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
     // Lead Offer Creation
     // ========================================================================
 
-    /**
-     * Create lead offers for a customer request.
-     * Finds available pros matching the category and creates offers.
-     */
+    
     @Transactional
     public List<LeadOfferDTO> createLeadOffersForRequest(CustomerRequest request) {
         Category category = request.getCategory();
@@ -90,9 +87,7 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
         return getMapper().toDtos(offers);
     }
 
-    /**
-     * Create a single lead offer for a specific pro.
-     */
+    
     @Transactional
     public LeadOfferDTO createOffer(Long requestId, Long proId) {
         CustomerRequest request = customerRequestRepository.findById(requestId)
@@ -128,11 +123,7 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
     // Lead Offer Actions
     // ========================================================================
 
-    /**
-     * Accept a lead offer.
-     * This deducts the lead cost from pro's wallet and creates a job.
-     * For FIRST_CLICK workflow, this also cancels other pending offers.
-     */
+    
     @Transactional
     public LeadOfferDTO acceptOffer(Long offerId) {
         LeadOffer offer = findEntityById(offerId);
@@ -173,9 +164,7 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
         return getMapper().toDto(saved);
     }
 
-    /**
-     * Reject/miss a lead offer.
-     */
+    
     @Transactional
     public LeadOfferDTO missOffer(Long offerId) {
         LeadOffer offer = findEntityById(offerId);
@@ -192,9 +181,7 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
         return getMapper().toDto(saved);
     }
 
-    /**
-     * Cancel a specific offer.
-     */
+    
     @Transactional
     public LeadOfferDTO cancelOffer(Long offerId) {
         LeadOffer offer = findEntityById(offerId);
@@ -211,9 +198,7 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
         return getMapper().toDto(saved);
     }
 
-    /**
-     * Cancel all pending offers for a request.
-     */
+    
     @Transactional
     public void cancelOffersForRequest(Long requestId) {
         List<LeadOffer> offers = leadOfferRepository.findByRequestId(requestId);
@@ -228,9 +213,7 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
         log.info("Cancelled all pending offers for request {}", requestId);
     }
 
-    /**
-     * Cancel other offers for a request (except the accepted one).
-     */
+    
     private void cancelOtherOffersForRequest(Long requestId, Long exceptOfferId) {
         List<LeadOffer> offers = leadOfferRepository.findByRequestId(requestId);
 
@@ -246,27 +229,21 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
     // Query Methods
     // ========================================================================
 
-    /**
-     * Get offers for a request.
-     */
+    
     @Transactional(readOnly = true)
     public List<LeadOfferDTO> findByRequestId(Long requestId) {
         List<LeadOffer> offers = leadOfferRepository.findByRequestId(requestId);
         return getMapper().toDtos(offers);
     }
 
-    /**
-     * Get pending offers for a pro.
-     */
+    
     @Transactional(readOnly = true)
     public List<LeadOfferDTO> findPendingOffersByProId(Long proId) {
         List<LeadOffer> offers = leadOfferRepository.findByProIdAndStatus(proId, LeadOfferStatus.OFFERED);
         return getMapper().toDtos(offers);
     }
 
-    /**
-     * Get accepted offers for a pro.
-     */
+    
     @Transactional(readOnly = true)
     public List<LeadOfferDTO> findAcceptedOffersByProId(Long proId) {
         List<LeadOffer> offers = leadOfferRepository.findByProIdAndStatus(proId, LeadOfferStatus.ACCEPTED);
@@ -277,9 +254,7 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
     // Expiration handling
     // ========================================================================
 
-    /**
-     * Expire old offers that have passed their expiration time.
-     */
+    
     @Transactional
     public int expireOldOffers() {
         List<LeadOffer> expired = leadOfferRepository.findExpiredOffers(LocalDateTime.now());

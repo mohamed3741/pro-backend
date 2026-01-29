@@ -19,10 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Service for managing user devices (push notification tokens).
- * Supports iOS, Android, and Web push notification registrations.
- */
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -36,11 +33,7 @@ public class UserDeviceService {
     // Device Registration
     // ========================================================================
 
-    /**
-     * Register or update a device for push notifications.
-     * If the token already exists, updates the existing device.
-     * If not, creates a new device registration.
-     */
+    
     @Transactional
     public UserDevice registerDevice(UserDeviceRegistrationRequest request) {
         validateRegistrationRequest(request);
@@ -87,9 +80,7 @@ public class UserDeviceService {
         return saved;
     }
 
-    /**
-     * Unregister a device (remove push notification token).
-     */
+    
     @Transactional
     public void unregisterDevice(String token) {
         if (token == null || token.isBlank()) {
@@ -105,9 +96,7 @@ public class UserDeviceService {
         }
     }
 
-    /**
-     * Update device language preference.
-     */
+    
     @Transactional
     public UserDevice updateDeviceLanguage(String token, String lang) {
         UserDevice device = userDeviceRepository.findByToken(token)
@@ -121,49 +110,37 @@ public class UserDeviceService {
     // Device Queries
     // ========================================================================
 
-    /**
-     * Get all devices for a specific client.
-     */
+    
     @Transactional(readOnly = true)
     public List<UserDevice> getClientDevices(Long clientId) {
         return userDeviceRepository.findByClientId(clientId);
     }
 
-    /**
-     * Get all devices for a specific pro.
-     */
+    
     @Transactional(readOnly = true)
     public List<UserDevice> getProDevices(Long proId) {
         return userDeviceRepository.findByProId(proId);
     }
 
-    /**
-     * Get all devices by OS type.
-     */
+    
     @Transactional(readOnly = true)
     public List<UserDevice> getDevicesByOsType(OsType osType) {
         return userDeviceRepository.findByOsType(osType);
     }
 
-    /**
-     * Get all devices by profile type.
-     */
+    
     @Transactional(readOnly = true)
     public List<UserDevice> getDevicesByProfileType(ProfileType profileType) {
         return userDeviceRepository.findByProfileType(profileType);
     }
 
-    /**
-     * Get device by token.
-     */
+    
     @Transactional(readOnly = true)
     public Optional<UserDevice> getDeviceByToken(String token) {
         return userDeviceRepository.findByToken(token);
     }
 
-    /**
-     * Check if a device is registered.
-     */
+    
     @Transactional(readOnly = true)
     public boolean isDeviceRegistered(String token) {
         return userDeviceRepository.findByToken(token).isPresent();
@@ -173,9 +150,7 @@ public class UserDeviceService {
     // Device Cleanup
     // ========================================================================
 
-    /**
-     * Remove all devices for a client (e.g., on logout or account deletion).
-     */
+    
     @Transactional
     public void removeAllClientDevices(Long clientId) {
         List<UserDevice> devices = userDeviceRepository.findByClientId(clientId);
@@ -183,9 +158,7 @@ public class UserDeviceService {
         log.info("Removed {} devices for client {}", devices.size(), clientId);
     }
 
-    /**
-     * Remove all devices for a pro (e.g., on logout or account deletion).
-     */
+    
     @Transactional
     public void removeAllProDevices(Long proId) {
         List<UserDevice> devices = userDeviceRepository.findByProId(proId);
@@ -193,10 +166,7 @@ public class UserDeviceService {
         log.info("Removed {} devices for pro {}", devices.size(), proId);
     }
 
-    /**
-     * Remove invalid/expired device tokens.
-     * Called when push notification service reports invalid tokens.
-     */
+    
     @Transactional
     public void removeInvalidToken(String token) {
         userDeviceRepository.findByToken(token).ifPresent(device -> {

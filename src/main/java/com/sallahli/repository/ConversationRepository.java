@@ -33,8 +33,6 @@ public interface ConversationRepository
                         @Param("userId") Long userId,
                         Pageable pageable);
 
-
-
         @Query("SELECT c FROM Conversation c JOIN c.participants p1 JOIN c.participants p2 " +
                         "WHERE p1.role = :role1 AND p1.userId = :userId1 AND p2.role = :role2 AND p2.userId = :userId2 "
                         +
@@ -67,8 +65,8 @@ public interface ConversationRepository
         Long countConversationsWithoutAdminParticipants(
                         @Param("employeeRoles") List<UserRoleEnum> employeeRoles);
 
-        @Query("SELECT COUNT(m) FROM Message m JOIN m.conversation c JOIN c.participants p " +
-                        "WHERE p.role IN :roles AND m.senderRole IN :senderRoles AND m.isRead = false")
+        @Query("SELECT COUNT(m) FROM Message m JOIN m.conversation c " +
+                        "WHERE c.type IN :types AND m.senderRole IN :senderRoles AND m.isRead = false")
         Long countUnreadMessagesFromParticipantByType(
                         @Param("types") List<ConversationType> types,
                         @Param("senderRoles") List<UserRoleEnum> senderRoles);

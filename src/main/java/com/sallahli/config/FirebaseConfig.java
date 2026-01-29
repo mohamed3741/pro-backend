@@ -14,10 +14,7 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 
-/**
- * Firebase Cloud Messaging Configuration.
- * Supports Android, iOS, and Web push notifications.
- */
+
 @Configuration
 @Slf4j
 public class FirebaseConfig {

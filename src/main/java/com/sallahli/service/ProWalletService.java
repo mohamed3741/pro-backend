@@ -15,10 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Service for managing Pro wallet operations.
- * Handles credits, debits, refunds, and transaction history.
- */
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -31,9 +28,7 @@ public class ProWalletService {
     // Wallet Operations
     // ========================================================================
 
-    /**
-     * Credit (add money) to a pro's wallet.
-     */
+    
     @Transactional
     public ProWalletTransaction credit(Long proId, Long amount, String reason, String referenceType, Long referenceId) {
         if (amount <= 0) {
@@ -53,25 +48,19 @@ public class ProWalletService {
         return transaction;
     }
 
-    /**
-     * Recharge wallet from a payment.
-     */
+    
     @Transactional
     public ProWalletTransaction rechargeWallet(Long proId, Long amount, Long paymentId) {
         return credit(proId, amount, "RECHARGE", "PAYMENT", paymentId);
     }
 
-    /**
-     * Add free leads (promotional credits).
-     */
+    
     @Transactional
     public ProWalletTransaction addFreeCredits(Long proId, Long amount, String reason) {
         return credit(proId, amount, reason != null ? reason : "FREE_LEADS", "PROMOTION", null);
     }
 
-    /**
-     * Deduct (remove money) from a pro's wallet.
-     */
+    
     @Transactional
     public ProWalletTransaction debit(Long proId, Long amount, String reason, String referenceType, Long referenceId) {
         if (amount <= 0) {
@@ -104,17 +93,13 @@ public class ProWalletService {
         return transaction;
     }
 
-    /**
-     * Deduct for lead purchase.
-     */
+    
     @Transactional
     public ProWalletTransaction deductForLeadPurchase(Long proId, Long amount, Long requestId) {
         return debit(proId, amount, "LEAD_PURCHASE", "REQUEST", requestId);
     }
 
-    /**
-     * Refund money to a pro's wallet.
-     */
+    
     @Transactional
     public ProWalletTransaction refund(Long proId, Long amount, String reason, String referenceType, Long referenceId) {
         if (amount <= 0) {
@@ -134,17 +119,13 @@ public class ProWalletService {
         return transaction;
     }
 
-    /**
-     * Refund for a cancelled lead.
-     */
+    
     @Transactional
     public ProWalletTransaction refundForCancelledLead(Long proId, Long amount, Long requestId) {
         return refund(proId, amount, "LEAD_CANCELLED", "REQUEST", requestId);
     }
 
-    /**
-     * Admin adjustment (can be positive or negative).
-     */
+    
     @Transactional
     public ProWalletTransaction adjustment(Long proId, Long amount, String reason) {
         Pro pro = findPro(proId);
@@ -169,53 +150,41 @@ public class ProWalletService {
     // Query Methods
     // ========================================================================
 
-    /**
-     * Get current wallet balance.
-     */
+    
     @Transactional(readOnly = true)
     public Long getBalance(Long proId) {
         Pro pro = findPro(proId);
         return pro.getWalletBalance();
     }
 
-    /**
-     * Check if pro has sufficient balance.
-     */
+    
     @Transactional(readOnly = true)
     public boolean hasSufficientBalance(Long proId, Long requiredAmount) {
         Pro pro = findPro(proId);
         return pro.getWalletBalance() >= requiredAmount;
     }
 
-    /**
-     * Get transaction history for a pro.
-     */
+    
     @Transactional(readOnly = true)
     public List<ProWalletTransaction> getTransactionHistory(Long proId) {
         return walletTransactionRepository.findByProIdOrderByCreatedAtDesc(proId);
     }
 
-    /**
-     * Get transactions in date range.
-     */
+    
     @Transactional(readOnly = true)
     public List<ProWalletTransaction> getTransactionsInDateRange(Long proId, LocalDateTime startDate,
             LocalDateTime endDate) {
         return walletTransactionRepository.findTransactionsByProIdAndDateRange(proId, startDate, endDate);
     }
 
-    /**
-     * Get total credits for a pro.
-     */
+    
     @Transactional(readOnly = true)
     public Long getTotalCredits(Long proId) {
         Long total = walletTransactionRepository.getTotalCreditsByProId(proId);
         return total != null ? total : 0L;
     }
 
-    /**
-     * Get total debits for a pro.
-     */
+    
     @Transactional(readOnly = true)
     public Long getTotalDebits(Long proId) {
         Long total = walletTransactionRepository.getTotalDebitsByProId(proId);

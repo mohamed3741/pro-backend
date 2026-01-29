@@ -9,6 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,10 +30,10 @@ public class Address extends HasTimestamps implements Archivable {
     private String name;
 
     @Column(precision = 10, scale = 7)
-    private Double latitude;
+    private BigDecimal latitude;
 
     @Column(precision = 10, scale = 7)
-    private Double longitude;
+    private BigDecimal longitude;
 
     @Column(length = 100)
     private String country;

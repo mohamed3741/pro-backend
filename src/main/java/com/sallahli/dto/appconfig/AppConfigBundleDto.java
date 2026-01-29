@@ -2,6 +2,7 @@ package com.sallahli.dto.appconfig;
 
 import com.sallahli.model.Enum.AppType;
 import com.sallahli.model.Enum.PlatformType;
+import com.sallahli.utils.HasTimestampsDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +14,7 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AppConfigBundleDto {
+public class AppConfigBundleDto extends HasTimestampsDTO {
 
     private Long id;
     private AppType app;
@@ -23,7 +24,6 @@ public class AppConfigBundleDto {
     private String maxVersion;
     private boolean isActive;
     private String configJson;
-    private Instant createdAt;
     private String createdBy;
     private String hash;
     private String description;

@@ -35,27 +35,15 @@ logging:
           /management/health/liveness,
           /users/login,
           /users/gen-googleauth-otp,
-          /users/verify-googleauth-otp/**,
-          /users/exchange-token,
-          /*/signup,
+          /users/verify-googleauth-otpsignup,
           /*/*/signup,
           /*/me,/*/*/me,
           /users/check-code,
           /*/check-code,
-          /*/generate-code/**,
-          /*/login-with-otp,
-          /*/set-phone-number/**,
-          /*/*/generate-code,
-          /*/*/set-phone-number/**,
-          /*/refresh-token,
-          /*/phone-verification/**,
-          /*/send-otp/**,
-          /*/*/send-otp/**,
-          /ws,
-          /sockjs,
-          /client/update-names,
-          /api/translations/**,
-          /*/reset-password
+          /*/generate-codelogin-with-otp,
+          /*/set-phone-number*/generate-code,
+          /*/*/set-phone-numberrefresh-token,
+          /*/phone-verificationsend-otp*/send-otpreset-password
     oauth2:
       client:
         provider:

@@ -44,9 +44,7 @@ public class JobService extends AbstractCrudService<Job, JobDTO> {
     // Job Creation
     // ========================================================================
 
-    /**
-     * Create a job from an accepted lead offer.
-     */
+    
     @Transactional
     public JobDTO createJobFromLeadOffer(LeadOffer leadOffer) {
         CustomerRequest request = leadOffer.getRequest();
@@ -77,10 +75,7 @@ public class JobService extends AbstractCrudService<Job, JobDTO> {
     // Job Lifecycle
     // ========================================================================
 
-    /**
-     * Complete a job.
-     * Updates pro statistics.
-     */
+    
     @Transactional
     public JobDTO completeJob(Long jobId) {
         Job job = findJobById(jobId);
@@ -104,9 +99,7 @@ public class JobService extends AbstractCrudService<Job, JobDTO> {
         return getMapper().toDto(saved);
     }
 
-    /**
-     * Cancel a job.
-     */
+    
     @Transactional
     public JobDTO cancelJob(Long jobId, String reason) {
         Job job = findJobById(jobId);
@@ -123,9 +116,7 @@ public class JobService extends AbstractCrudService<Job, JobDTO> {
         return getMapper().toDto(saved);
     }
 
-    /**
-     * Mark job as no-show (pro didn't show up).
-     */
+    
     @Transactional
     public JobDTO markNoShow(Long jobId) {
         Job job = findJobById(jobId);
@@ -146,45 +137,35 @@ public class JobService extends AbstractCrudService<Job, JobDTO> {
     // Query Methods
     // ========================================================================
 
-    /**
-     * Get jobs for a pro.
-     */
+    
     @Transactional(readOnly = true)
     public List<JobDTO> findByProId(Long proId) {
         List<Job> jobs = jobRepository.findByProIdOrderByCreatedAtDesc(proId);
         return getMapper().toDtos(jobs);
     }
 
-    /**
-     * Get jobs for a client.
-     */
+    
     @Transactional(readOnly = true)
     public List<JobDTO> findByClientId(Long clientId) {
         List<Job> jobs = jobRepository.findByClientIdOrderByCreatedAtDesc(clientId);
         return getMapper().toDtos(jobs);
     }
 
-    /**
-     * Get jobs by status.
-     */
+    
     @Transactional(readOnly = true)
     public List<JobDTO> findByStatus(JobStatus status) {
         List<Job> jobs = jobRepository.findByStatus(status);
         return getMapper().toDtos(jobs);
     }
 
-    /**
-     * Get active jobs for a pro (IN_PROGRESS).
-     */
+    
     @Transactional(readOnly = true)
     public List<JobDTO> findActiveJobsByProId(Long proId) {
         List<Job> jobs = jobRepository.findByProIdAndStatus(proId, JobStatus.IN_PROGRESS);
         return getMapper().toDtos(jobs);
     }
 
-    /**
-     * Get completed jobs in date range.
-     */
+    
     @Transactional(readOnly = true)
     public List<JobDTO> findCompletedJobsInDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         List<Job> jobs = jobRepository.findCompletedJobsInDateRange(startDate, endDate);
@@ -195,26 +176,20 @@ public class JobService extends AbstractCrudService<Job, JobDTO> {
     // Statistics
     // ========================================================================
 
-    /**
-     * Get job count for a pro.
-     */
+    
     @Transactional(readOnly = true)
     public Long countCompletedJobsByPro(Long proId) {
         return jobRepository.countCompletedJobsByPro(proId);
     }
 
-    /**
-     * Get average rating for a pro.
-     */
+    
     @Transactional(readOnly = true)
     public Double getAverageRatingByPro(Long proId) {
         Double avg = jobRepository.getAverageRatingByPro(proId);
         return avg != null ? avg : 5.0;
     }
 
-    /**
-     * Update pro statistics after job completion.
-     */
+    
     @Transactional
     protected void updateProStatistics(Long proId) {
         Pro pro = proRepository.findById(proId)

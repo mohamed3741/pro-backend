@@ -9,49 +9,37 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+import java.math.BigDecimal;
+
 @Repository
 public interface AddressRepository extends GenericRepository<Address> {
 
-    /**
-     * Find all non-archived addresses.
-     */
-    List<Address> findByArchivedFalse();
+        
+        List<Address> findByArchivedFalse();
 
-    /**
-     * Find addresses by list of IDs that are not archived.
-     */
-    List<Address> findByIdInAndArchivedFalse(List<Long> ids);
+        
+        List<Address> findByIdInAndArchivedFalse(List<Long> ids);
 
-    /**
-     * Find a single address by ID that is not archived.
-     */
-    Optional<Address> findByIdAndArchivedFalse(Long id);
+        
+        Optional<Address> findByIdAndArchivedFalse(Long id);
 
-    /**
-     * Find all addresses for a specific client (non-archived).
-     */
-    @Query("SELECT a FROM Address a JOIN a.clients c WHERE c.id = :clientId AND a.archived = false")
-    List<Address> findByClientIdAndArchivedFalse(@Param("clientId") Long clientId);
+        
+        @Query("SELECT a FROM Address a JOIN a.clients c WHERE c.id = :clientId AND a.archived = false")
+        List<Address> findByClientIdAndArchivedFalse(@Param("clientId") Long clientId);
 
-    /**
-     * Find all addresses by formatted address pattern (for search/autocomplete).
-     */
-    List<Address> findByFormattedAddressContainingIgnoreCaseAndArchivedFalse(String formattedAddress);
+        
+        List<Address> findByFormattedAddressContainingIgnoreCaseAndArchivedFalse(String formattedAddress);
 
-    /**
-     * Find addresses within a geographic bounding box.
-     */
-    @Query("SELECT a FROM Address a WHERE a.archived = false " +
-            "AND a.latitude BETWEEN :minLat AND :maxLat " +
-            "AND a.longitude BETWEEN :minLon AND :maxLon")
-    List<Address> findByBoundingBox(
-            @Param("minLat") Double minLat,
-            @Param("maxLat") Double maxLat,
-            @Param("minLon") Double minLon,
-            @Param("maxLon") Double maxLon);
+        
+        @Query("SELECT a FROM Address a WHERE a.archived = false " +
+                        "AND a.latitude BETWEEN :minLat AND :maxLat " +
+                        "AND a.longitude BETWEEN :minLon AND :maxLon")
+        List<Address> findByBoundingBox(
+                        @Param("minLat") BigDecimal minLat,
+                        @Param("maxLat") BigDecimal maxLat,
+                        @Param("minLon") BigDecimal minLon,
+                        @Param("maxLon") BigDecimal maxLon);
 
-    /**
-     * Check if address exists and is not archived.
-     */
-    boolean existsByIdAndArchivedFalse(Long id);
+        
+        boolean existsByIdAndArchivedFalse(Long id);
 }

@@ -19,9 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * REST Controller for User Device management (push notification tokens).
- */
+
 @RestController
 @RequestMapping("/devices")
 @RequiredArgsConstructor

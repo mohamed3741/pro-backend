@@ -3,8 +3,9 @@ package com.sallahli.mapper;
 import com.sallahli.dto.chat.MessageDto;
 import com.sallahli.model.Message;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
-@org.mapstruct.Mapper(componentModel = "spring")
+@org.mapstruct.Mapper(componentModel = "spring", uses = { ConversationMapper.class })
 public interface MessageMapper extends Mapper<Message, MessageDto> {
 
     @Override
@@ -15,7 +16,8 @@ public interface MessageMapper extends Mapper<Message, MessageDto> {
     @Mapping(target = "senderLogo", ignore = true)
     MessageDto toDto(Message model);
 
-    @Mapping(target = "conversation", ignore = true)
+    @Named("toDtoWithoutConversation")
+
     @Mapping(target = "conversationId", ignore = true)
     @Mapping(target = "senderFirstName", ignore = true)
     @Mapping(target = "senderLastName", ignore = true)
