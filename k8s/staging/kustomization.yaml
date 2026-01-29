@@ -1,14 +1,14 @@
 bases:
     - ../base
 
-namespace: dentist
+namespace: sallahli
 resources:
     - namespace.yaml
     - ingress.yaml
-    - postgres-clinic.yaml
-    - pvc-clinic.yaml
+    - postgres-sallahli.yaml
+    - pvc-sallahli.yaml
     - regcred.yaml
 
 
 patchesStrategicMerge:
-    - clinic-backend.yaml
+    - sallahli-backend.yaml
