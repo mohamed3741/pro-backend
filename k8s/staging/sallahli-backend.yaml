@@ -40,8 +40,8 @@ spec:
             - name: KEYCLOAK_CREDENTIALS_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: clinic-secrets
-                  key: KEYCLOAK_CLINIC_SECRET
+                  name: sallahli-secrets
+                  key: KEYCLOAK_SALLAHLI_SECRET
             - name: KEYCLOAK_AUTH_SERVER_URL
               value: https://keycloak.digiwave-tech.com
             - name: KEYCLOAK_REALM

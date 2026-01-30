@@ -8,7 +8,7 @@ on:
       - v*
 
 jobs:
-  clinic-backend:
+  sallahli-backend:
     runs-on: ubuntu-latest
 
     steps:

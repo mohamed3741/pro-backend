@@ -10,10 +10,7 @@ public class KeycloakUtils {
     public static final String VERIFICATION_CODE_EXPIRATION_ATTRIBUTE = "verificationCodeExpiration";
     public static final String IS_ARCHIVED_ATTRIBUTE = "isArchived";
 
-    // Clinic multi-tenancy attributes (from Keycloak user attributes)
-    public static final String CLINIC_ID_ATTRIBUTE = "clinicId";
-    public static final String CLINIC_ID_JWT_CLAIM = "clinic_id";
-    public static final String CLINIC_ADMIN_EMAIL_ATTRIBUTE = "email";
+
 
     // Roles
     public static final String CLIENT_ROLE = "CLIENT";

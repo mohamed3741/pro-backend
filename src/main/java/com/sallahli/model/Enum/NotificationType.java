@@ -2,7 +2,7 @@ package com.sallahli.model.Enum;
 
 public enum NotificationType {
 
-    // Medical clinic notifications
+    // Medical SALLAHLI notifications
     CHANGE_OF_OPENING_STATUS ,
     CHANGE_SUPPLEMENT_AVAILABILITY ,
     CHANGE_PRODUCT_AVAILABILITY,

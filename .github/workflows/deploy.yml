@@ -61,11 +61,11 @@ jobs:
       - name: calculate images
         run: |
           git status
-          export TAG_clinic=$(git ls-files -s . | git hash-object --stdin)
+          export TAG_SALLAHLI=$(git ls-files -s . | git hash-object --stdin)
           
           cd k8s/${{github.event.inputs.ENV}}
           
-          kustomize edit set image ghcr.io/mohamed3741/pro-backend=ghcr.io/mohamed3741/pro-backend:$TAG_clinic
+          kustomize edit set image ghcr.io/mohamed3741/pro-backend=ghcr.io/mohamed3741/pro-backend:$TAG_SALLAHLI
 
 
       - name: annotate namespaces
