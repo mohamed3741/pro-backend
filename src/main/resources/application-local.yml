@@ -68,10 +68,10 @@ keycloak:
   admin-client:
     enabled: true
   auth-server-url: https://keycloak.digiwave-tech.com
-  client-id: clinic-client
+  client-id: sallahli-client
   credentials:
-    secret: C0p0bl5VQ6yQObknp5X3bBU5wlqPz8no
-  realm: clinic
+    secret: zOu7ia6cZifaY8DppzmxuqrajYXwDrfR
+  realm: sallahli
 
 cloudflare:
   r2:
