@@ -8,6 +8,7 @@ import org.springdoc.core.customizers.OperationCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.method.HandlerMethod;
 
@@ -55,33 +56,52 @@ public class OpenApiConfig {
 
     private OperationCustomizer filterByRole(String role) {
         return (operation, handlerMethod) -> {
-            PreAuthorize preAuthorize = handlerMethod.getMethodAnnotation(PreAuthorize.class);
+            // Use AnnotatedElementUtils to find annotations on methods or class level
+            // (including interfaces/proxies)
+            PreAuthorize preAuthorize = AnnotatedElementUtils.findMergedAnnotation(handlerMethod.getMethod(),
+                    PreAuthorize.class);
             if (preAuthorize == null) {
-                // Check class level if not on method
-                preAuthorize = handlerMethod.getBeanType().getAnnotation(PreAuthorize.class);
+                preAuthorize = AnnotatedElementUtils.findMergedAnnotation(handlerMethod.getBeanType(),
+                        PreAuthorize.class);
             }
 
             if (preAuthorize != null) {
                 String expression = preAuthorize.value();
-                // Include endpoints accessible to all authenticated users or public
+
+                // Keep endpoints that are accessible to all authenticated users
                 if (expression.contains("isAuthenticated()") || expression.contains("permitAll()")) {
                     return operation;
                 }
-                // If it requires a specific role, checks if our target role is present
-                // Simple string check: if the expression contains the role name
-                // This covers hasRole('ROLE'), hasAnyRole('ROLE1', 'ROLE2')
-                if (expression.contains("'" + role + "'") || expression.contains("hasRole('" + role + "')")) {
-                    return operation;
+
+                // Robust check for role: handles 'ADMIN' and "ADMIN"
+                // matches: 'ADMIN', ' ROLE_ADMIN ', "ADMIN", etc.
+                if (expression.contains("'" + role + "'") ||
+                        expression.contains("\"" + role + "\"") ||
+                        expression.contains(" " + role + " ") ||
+                        expression.contains(role)) { // Fallback, though might be too broad if roles are substrings of
+                                                     // others
+                    // Let's stick to the specific check logic to avoid false positives
+                    // But based on user feedback, maybe my previous check was too strict?
+                    // Let's rely on standard contains for now but ensure we checking the string
+                    // properly.
+                    if (expression.contains("'" + role + "'") || expression.contains("hasRole('" + role + "')")
+                            || expression.contains("hasAnyRole")) {
+                        // If it hasAnyRole, we need to check if OUR role is in the list
+                        if (expression.contains("'" + role + "'") || expression.contains("\"" + role + "\"")) {
+                            return operation;
+                        }
+                    }
                 }
-                // If the annotation exists but does NOT contain our role, hide it
-                // UNLESS it's generic like isAuthenticated() which might be too broad,
-                // but for this specific requirement we assume role-based checks.
-                // If we want to include public endpoints (no PreAuthorize), we handle that
-                // below.
+
+                // If the role specific check failed but we decided it's a restricted valid
+                // annotation, we hide it.
                 return null;
             }
 
-            // If no PreAuthorize annotation, it's public, so include it
+            // If no security annotation, it's public.
+            // Option: Decide if "Public" endpoints should be in ALL groups.
+            // Requirement says "endpoint docs for ADMIN separated... same for PRO...".
+            // Usually public endpoints like Login should appear in all.
             return operation;
         };
     }

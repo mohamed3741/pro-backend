@@ -17,6 +17,10 @@ javamelody:
     storage-directory: '"./monitoring"'
   spring-monitoring-enabled: true
 
+springdoc:
+  show-spring-data-rest: false
+
+
 logging:
   level:
     com:
