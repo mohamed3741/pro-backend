@@ -32,6 +32,30 @@ public class OpenApiConfig {
         return GroupedOpenApi.builder()
                 .group("admin")
                 .packagesToScan("com.sallahli.controller")
+                .pathsToExclude(
+                        "/profile/**",
+                        "/error/**",
+                        "/addresses/**",
+                        "/appConfigBundles/**",
+                        "/categories/**",
+                        "/clients/**",
+                        "/conversationParticipants/**",
+                        "/conversations/**",
+                        "/customerRequests/**",
+                        "/jobs/**",
+                        "/leadOffers/**",
+                        "/media/**",
+                        "/messages/**",
+                        "/notificationAttributes/**",
+                        "/notifications/**",
+                        "/onlineTransactions/**",
+                        "/payments/**",
+                        "/pros/**",
+                        "/proWalletTransactions/**",
+                        "/ratings/**",
+                        "/userDevices/**",
+                        "/userOtpExpirations/**",
+                        "/zones/**")
                 .addOperationCustomizer(filterByRole("ADMIN"))
                 .build();
     }
@@ -41,6 +65,30 @@ public class OpenApiConfig {
         return GroupedOpenApi.builder()
                 .group("pro")
                 .packagesToScan("com.sallahli.controller")
+                .pathsToExclude(
+                        "/profile/**",
+                        "/error/**",
+                        "/addresses/**",
+                        "/appConfigBundles/**",
+                        "/categories/**",
+                        "/clients/**",
+                        "/conversationParticipants/**",
+                        "/conversations/**",
+                        "/customerRequests/**",
+                        "/jobs/**",
+                        "/leadOffers/**",
+                        "/media/**",
+                        "/messages/**",
+                        "/notificationAttributes/**",
+                        "/notifications/**",
+                        "/onlineTransactions/**",
+                        "/payments/**",
+                        "/pros/**",
+                        "/proWalletTransactions/**",
+                        "/ratings/**",
+                        "/userDevices/**",
+                        "/userOtpExpirations/**",
+                        "/zones/**")
                 .addOperationCustomizer(filterByRole("PRO"))
                 .build();
     }
@@ -50,6 +98,30 @@ public class OpenApiConfig {
         return GroupedOpenApi.builder()
                 .group("client")
                 .packagesToScan("com.sallahli.controller")
+                .pathsToExclude(
+                        "/profile/**",
+                        "/error/**",
+                        "/addresses/**",
+                        "/appConfigBundles/**",
+                        "/categories/**",
+                        "/clients/**",
+                        "/conversationParticipants/**",
+                        "/conversations/**",
+                        "/customerRequests/**",
+                        "/jobs/**",
+                        "/leadOffers/**",
+                        "/media/**",
+                        "/messages/**",
+                        "/notificationAttributes/**",
+                        "/notifications/**",
+                        "/onlineTransactions/**",
+                        "/payments/**",
+                        "/pros/**",
+                        "/proWalletTransactions/**",
+                        "/ratings/**",
+                        "/userDevices/**",
+                        "/userOtpExpirations/**",
+                        "/zones/**")
                 .addOperationCustomizer(filterByRole("CLIENT"))
                 .build();
     }
