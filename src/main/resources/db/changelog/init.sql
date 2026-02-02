@@ -602,3 +602,43 @@ ALTER TABLE category
     ADD COLUMN IF NOT EXISTS workflow_type VARCHAR(20) DEFAULT 'LEAD_OFFER';
 
 UPDATE category SET workflow_type = 'LEAD_OFFER' WHERE workflow_type IS NULL;
+
+--changeset sallahli:fix-schema-archived-columns
+ALTER TABLE media ADD COLUMN IF NOT EXISTS archived BOOLEAN DEFAULT FALSE;
+ALTER TABLE zone ADD COLUMN IF NOT EXISTS archived BOOLEAN DEFAULT FALSE;
+ALTER TABLE pro ADD COLUMN IF NOT EXISTS archived BOOLEAN DEFAULT FALSE;
+
+--changeset mohamdi:init-sql/2
+ALTER TABLE media ADD COLUMN IF NOT EXISTS archived BOOLEAN DEFAULT FALSE;
+
+--changeset mohamdi:init-sql/3
+ALTER TABLE media
+    ADD COLUMN IF NOT EXISTS duration_millis BIGINT;
+
+ALTER TABLE media
+    ADD COLUMN IF NOT EXISTS mime_type VARCHAR(255);
+
+ALTER TABLE media
+    ADD COLUMN IF NOT EXISTS size_bytes BIGINT;
+
+--changeset mohamdi:init-sql/4
+ALTER TABLE zone ADD COLUMN IF NOT EXISTS archived BOOLEAN DEFAULT FALSE;
+
+--changeset mohamdi:init-sql/5
+ALTER TABLE pro ADD COLUMN IF NOT EXISTS current_latitude DOUBLE PRECISION;
+ALTER TABLE pro ADD COLUMN IF NOT EXISTS current_longitude DOUBLE PRECISION;
+ALTER TABLE pro ADD COLUMN IF NOT EXISTS location_updated_at TIMESTAMP;
+
+--changeset mohamdi:init-sql/6
+ALTER TABLE pro ADD COLUMN IF NOT EXISTS first_name VARCHAR(255);
+ALTER TABLE pro ADD COLUMN IF NOT EXISTS last_name VARCHAR(255);
+ALTER TABLE pro ADD COLUMN IF NOT EXISTS profile_photo VARCHAR(255);
+ALTER TABLE pro ADD COLUMN IF NOT EXISTS trade_doc_media_id BIGINT;
+ALTER TABLE pro ADD COLUMN IF NOT EXISTS kyc_submitted_at TIMESTAMP;
+
+ALTER TABLE pro
+    DROP CONSTRAINT IF EXISTS fk_pro_trade_doc;
+
+ALTER TABLE pro
+    ADD CONSTRAINT fk_pro_trade_doc
+        FOREIGN KEY (trade_doc_media_id) REFERENCES media(id) ON DELETE SET NULL;
