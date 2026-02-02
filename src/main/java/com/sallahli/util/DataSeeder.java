@@ -110,6 +110,7 @@ public class DataSeeder implements CommandLineRunner {
     private void createPro(Category trade, Zone zone, Media profilePhoto) {
         proRepository.save(Pro.builder()
                 .tel(faker.phoneNumber().cellPhone())
+                .username(faker.name().username())
                 .firstName(faker.name().firstName())
                 .lastName(faker.name().lastName())
                 .fullName(faker.name().fullName())

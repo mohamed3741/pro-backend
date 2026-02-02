@@ -17,6 +17,7 @@ public class ProDTO {
 
     private Long id;
     private String tel;
+    private String username;
     private String firstName;
     private String lastName;
     private String fullName;
@@ -24,7 +25,6 @@ public class ProDTO {
     private String profilePhoto;
     private CategoryDTO trade;
     private ZoneDTO baseZone;
-
 
     private MediaDTO cniFrontMedia;
     private MediaDTO cniBackMedia;
@@ -35,17 +35,14 @@ public class ProDTO {
     private LocalDateTime approvedAt;
     private Long approvedBy;
 
-
     private Double currentLatitude;
     private Double currentLongitude;
     private LocalDateTime locationUpdatedAt;
-
 
     private Boolean online;
     private Double ratingAvg;
     private Long ratingCount;
     private Long jobsCompleted;
-
 
     private Long walletBalance;
     private Long lowBalanceThreshold;

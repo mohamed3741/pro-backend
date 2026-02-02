@@ -64,7 +64,6 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     // Pro Registration & Profile
     // ========================================================================
 
-    
     @Transactional(readOnly = true)
     public ProDTO findByTel(String tel) {
         Pro pro = proRepository.findByTel(tel)
@@ -72,7 +71,6 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         return getMapper().toDto(pro);
     }
 
-    
     @Transactional(readOnly = true)
     public boolean existsByTel(String tel) {
         return proRepository.findByTel(tel).isPresent();
@@ -82,12 +80,14 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     // Self-Service: Registration & Signup
     // ========================================================================
 
-    
     @Transactional
     public ProDTO signup(ProDTO dto) {
         // Validate required fields for signup
         if (dto.getTel() == null || dto.getTel().isBlank()) {
             throw new BadRequestException("Telephone number is required");
+        }
+        if (dto.getUsername() == null || dto.getUsername().isBlank()) {
+            throw new BadRequestException("Username is required");
         }
         if (dto.getFirstName() == null || dto.getFirstName().isBlank()) {
             throw new BadRequestException("First name is required");
@@ -101,13 +101,17 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
             throw new BadRequestException("A pro with this telephone number already exists");
         }
 
+        // Check if username already exists
+        if (proRepository.findByUsername(dto.getUsername()).isPresent()) {
+            throw new BadRequestException("A pro with this username already exists");
+        }
+
         // Create the pro with defaults set in beforePersist
         ProDTO created = create(dto);
         log.info("New pro signup with telephone: {}", dto.getTel());
         return created;
     }
 
-    
     @Transactional
     public ProDTO updateProfile(Long proId, ProDTO dto) {
         Pro pro = findProById(proId);
@@ -143,7 +147,6 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         return getMapper().toDto(saved);
     }
 
-    
     @Transactional
     public ProDTO submitKycDocuments(Long proId, Long cniFrontMediaId, Long cniBackMediaId, Long selfieMediaId,
             Long tradeDocMediaId) {
@@ -188,7 +191,6 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         return getMapper().toDto(saved);
     }
 
-    
     @Transactional
     public ProDTO updateLocation(Long proId, Double latitude, Double longitude) {
         Pro pro = findProById(proId);
@@ -202,31 +204,26 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         return getMapper().toDto(saved);
     }
 
-    
     @Transactional
     public ProDTO goOnline(Long proId) {
         return setOnlineStatus(proId, true);
     }
 
-    
     @Transactional
     public ProDTO goOffline(Long proId) {
         return setOnlineStatus(proId, false);
     }
 
-    
     @Transactional
     public ProDTO updateMyLowBalanceThreshold(Long proId, Long threshold) {
         return updateLowBalanceThreshold(proId, threshold);
     }
 
-    
     @Transactional(readOnly = true)
     public ProDTO getMyProfile(Long proId) {
         return findById(proId);
     }
 
-    
     @Transactional(readOnly = true)
     public KycStatus getMyKycStatus(Long proId) {
         Pro pro = findProById(proId);
@@ -237,20 +234,17 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     // KYC Management (Admin)
     // ========================================================================
 
-    
     @Transactional(readOnly = true)
     public List<ProDTO> findByKycStatus(KycStatus kycStatus) {
         List<Pro> pros = proRepository.findByKycStatus(kycStatus);
         return getMapper().toDtos(pros);
     }
 
-    
     @Transactional(readOnly = true)
     public List<ProDTO> findPendingKycApplications() {
         return findByKycStatus(KycStatus.PENDING);
     }
 
-    
     @Transactional
     public ProDTO approveKyc(Long proId, Long approvedBy) {
         Pro pro = findProById(proId);
@@ -270,7 +264,6 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         return getMapper().toDto(saved);
     }
 
-    
     @Transactional
     public ProDTO rejectKyc(Long proId, String reason) {
         Pro pro = findProById(proId);
@@ -291,7 +284,6 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     // Online/Availability Status
     // ========================================================================
 
-    
     @Transactional
     public ProDTO setOnlineStatus(Long proId, boolean online) {
         Pro pro = findProById(proId);
@@ -314,21 +306,18 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         return getMapper().toDto(saved);
     }
 
-    
     @Transactional(readOnly = true)
     public List<ProDTO> findOnlinePros() {
         List<Pro> pros = proRepository.findByOnlineTrue();
         return getMapper().toDtos(pros);
     }
 
-    
     @Transactional(readOnly = true)
     public List<ProDTO> findAvailablePros(Long minBalance) {
         List<Pro> pros = proRepository.findAvailablePros(minBalance);
         return getMapper().toDtos(pros);
     }
 
-    
     @Transactional(readOnly = true)
     public List<ProDTO> findAvailableProsByTrade(Long tradeId, Long minBalance) {
         List<Pro> pros = proRepository.findAvailableProsByTrade(tradeId, minBalance);
@@ -339,7 +328,6 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     // Account Management
     // ========================================================================
 
-    
     @Transactional
     public ProDTO activateAccount(Long proId) {
         Pro pro = findProById(proId);
@@ -349,7 +337,6 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         return getMapper().toDto(saved);
     }
 
-    
     @Transactional
     public ProDTO deactivateAccount(Long proId) {
         Pro pro = findProById(proId);
@@ -360,7 +347,6 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         return getMapper().toDto(saved);
     }
 
-    
     @Override
     @Transactional
     public void delete(Long id) {
@@ -376,7 +362,6 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     // Low Balance Threshold
     // ========================================================================
 
-    
     @Transactional
     public ProDTO updateLowBalanceThreshold(Long proId, Long threshold) {
         if (threshold < 0) {
@@ -396,13 +381,11 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     // Statistics
     // ========================================================================
 
-    
     @Transactional(readOnly = true)
     public Long countApprovedActivePros() {
         return proRepository.countApprovedActivePros();
     }
 
-    
     @Transactional(readOnly = true)
     public Double getAverageRating() {
         return proRepository.getAverageRating();

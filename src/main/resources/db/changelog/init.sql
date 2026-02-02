@@ -642,3 +642,7 @@ ALTER TABLE pro
 ALTER TABLE pro
     ADD CONSTRAINT fk_pro_trade_doc
         FOREIGN KEY (trade_doc_media_id) REFERENCES media(id) ON DELETE SET NULL;
+
+--changeset mohamdi:init-sql/7
+ALTER TABLE pro ADD COLUMN IF NOT EXISTS username VARCHAR(255);
+ALTER TABLE pro ADD CONSTRAINT uq_pro_username UNIQUE (username);

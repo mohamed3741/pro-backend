@@ -24,6 +24,9 @@ public class Pro extends HasTimestamps implements Archivable {
     @Column(nullable = false, unique = true)
     private String tel;
 
+    @Column(nullable = false, unique = true)
+    private String username;
+
     private String firstName;
     private String lastName;
     private String fullName;
