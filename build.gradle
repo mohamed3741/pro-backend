@@ -100,6 +100,7 @@ dependencies {
     implementation 'io.github.jav:expo-server-sdk:1.1.0'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
     implementation group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.11.379'
+    implementation 'com.github.javafaker:javafaker:1.0.2'
 
     implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-hibernate5', version: jacksonVersion
     // https://mvnrepository.com/artifact/javax.persistence/javax.persistence-api
