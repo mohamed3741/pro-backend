@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/clients")
+@RequestMapping("/client")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Client Management", description = "APIs for managing clients")
