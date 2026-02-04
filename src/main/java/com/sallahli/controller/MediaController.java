@@ -10,7 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/media")
+@RequestMapping("/media")
 @RequiredArgsConstructor
 @Tag(name = "Media", description = "Media management APIs")
 public class MediaController {
