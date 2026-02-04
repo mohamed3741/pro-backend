@@ -102,7 +102,10 @@ spring:
           /*/generate-codelogin-with-otp,
           /*/set-phone-number*/generate-code,
           /*/*/set-phone-numberrefresh-token,
-          /*/phone-verificationsend-otp*/send-otpreset-password
+          /*/phone-verificationsend-otp,
+          */send-otp,
+          reset-password,
+          /categories/active,
     oauth2:
       client:
         provider:
