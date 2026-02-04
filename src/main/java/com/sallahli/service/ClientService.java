@@ -111,8 +111,10 @@ public class ClientService extends AbstractCrudService<Client, ClientDTO> {
             }
 
             // Get the client to check if they have an existing logo (for mediaId)
-            Client client = clientRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new NotFoundException("Client not found."));
+            Client client = clientRepository.findByUsername(authentication.getName());
+            if (client == null) {
+                throw new NotFoundException("Client not found.");
+            }
 
             Long mediaId = (client.getLogo() != null && client.getLogo().getId() != null)
                     ? client.getLogo().getId()
@@ -134,8 +136,10 @@ public class ClientService extends AbstractCrudService<Client, ClientDTO> {
     @Transactional
     public ClientDTO updateUser(Authentication authentication, ClientDTO clientDTO) {
         String username = authentication.getName();
-        Client client = clientRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        Client client = clientRepository.findByUsername(username);
+        if (client == null) {
+            throw new NotFoundException("User not found");
+        }
 
         UsersResource usersResource = keycloak.realm(realm).users();
         UserRepresentation kcUser = usersResource.search(username, true).stream().findFirst()
@@ -184,8 +188,7 @@ public class ClientService extends AbstractCrudService<Client, ClientDTO> {
 
     @Transactional(readOnly = true)
     public ClientDTO findByUsername(String username) {
-        Client client = clientRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("Client not found with username: " + username));
+        Client client = clientRepository.findByUsername(username);
         return getMapper().toDto(client);
     }
 

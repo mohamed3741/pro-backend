@@ -114,6 +114,9 @@ public class ClientController {
         String username = authentication.getName();
 
         ClientDTO client = clientService.findByUsername(username);
+        if (client == null) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(clientService.updateProfile(client.getId(), dto));
     }
 
@@ -137,8 +140,11 @@ public class ClientController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Find client by username", description = "Returns client by username")
     public ResponseEntity<ClientDTO> findByUsername(@PathVariable String username) {
-
-        return ResponseEntity.ok(clientService.findByUsername(username));
+        ClientDTO client = clientService.findByUsername(username);
+        if (client == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(client);
     }
 
 }

@@ -69,9 +69,8 @@ public class ClientAuthService {
 
         UsersResource usersResource = keycloak.realm(realm).users();
 
-        Optional<Client> localExistingOpt = clientRepository.findByUsername(userDTO.getUsername());
-        if (localExistingOpt.isPresent()) {
-            Client localExisting = localExistingOpt.get();
+        Client localExisting = clientRepository.findByUsername(userDTO.getUsername());
+        if (localExisting != null) {
             if (Boolean.TRUE.equals(localExisting.getIsTelVerified())) {
                 throw new ConflictAccountException("User already exists");
             }
@@ -207,12 +206,11 @@ public class ClientAuthService {
 
     private ClientDTO saveClientAndGenerationVerificationCode(UserDTO user, String kcUserId) {
 
-        Client localUser = clientRepository.findByUsername(user.getUsername())
-                .orElseGet(() -> {
-                    Client newClient = new Client();
-                    newClient.setUsername(user.getUsername());
-                    return newClient;
-                });
+        Client localUser = clientRepository.findByUsername(user.getUsername());
+        if (localUser == null) {
+            localUser = new Client();
+            localUser.setUsername(user.getUsername());
+        }
 
         localUser.setCustomerId(kcUserId);
         localUser.setFirstName(user.getFirstName());
@@ -253,11 +251,11 @@ public class ClientAuthService {
             usersResource.get(user.getId()).update(user);
 
             // Update local client
-            clientRepository.findByUsername(userCode.getUsername())
-                    .ifPresent(client -> {
-                        client.setIsTelVerified(true);
-                        clientRepository.save(client);
-                    });
+            Client client = clientRepository.findByUsername(userCode.getUsername());
+            if (client != null) {
+                client.setIsTelVerified(true);
+                clientRepository.save(client);
+            }
         }
 
         return valid;
@@ -343,8 +341,10 @@ public class ClientAuthService {
         kcUser.setLastName(userDTO.getLastName());
         usersResource.get(kcUser.getId()).update(kcUser);
 
-        Client client = clientRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("Client not found with username: " + username));
+        Client client = clientRepository.findByUsername(username);
+        if (client == null) {
+            throw new NotFoundException("Client not found with username: " + username);
+        }
         client.setFirstName(userDTO.getFirstName());
         client.setLastName(userDTO.getLastName());
         clientRepository.save(client);
@@ -354,9 +354,12 @@ public class ClientAuthService {
 
     public ClientDTO initClientFromToken(Authentication authentication) {
         String username = authentication.getName();
-        ensureClientRole(username);
         JwtAuthenticationToken jwt = (JwtAuthenticationToken) authentication;
         Map<String, Object> attrs = jwt.getTokenAttributes();
+        String sub = Objects.toString(attrs.get("sub"));
+
+        ensureClientRole(sub);
+
         Client client = Client.builder()
                 .username(username)
                 .isActive(true)
@@ -365,7 +368,7 @@ public class ClientAuthService {
                 .lastName(Objects.toString(attrs.get("given_name"), null))
                 .firstName(Objects.toString(attrs.get("given_name"), null))
                 .email(Objects.toString(attrs.get("email"), null))
-                .customerId(Objects.toString(attrs.get("sub")))
+                .customerId(sub)
                 .build();
         return clientMapper.toDto(clientRepository.save(client));
     }
@@ -383,8 +386,10 @@ public class ClientAuthService {
         kcUser.singleAttribute(KeycloakUtils.IS_VERIFIED_ATTRIBUTE, "false");
         usersResource.get(kcUser.getId()).update(kcUser);
 
-        Client client = clientRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("Client not found with username: " + username));
+        Client client = clientRepository.findByUsername(username);
+        if (client == null) {
+            throw new NotFoundException("Client not found with username: " + username);
+        }
         client.setTel(tel);
         client.setIsTelVerified(false);
         clientRepository.save(client);
@@ -402,8 +407,10 @@ public class ClientAuthService {
             throw new BadRequestException("Invalid or expired OTP");
         }
 
-        Client client = clientRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("Client not found"));
+        Client client = clientRepository.findByUsername(username);
+        if (client == null) {
+            throw new NotFoundException("Client not found");
+        }
 
         String newUsername = username + '_' + UUID.randomUUID();
         client.setArchived(true);
@@ -423,8 +430,10 @@ public class ClientAuthService {
     @Transactional
     public void deleteUser(Authentication authentication, String password) {
         String username = authentication.getName();
-        Client client = clientRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("Client not found"));
+        Client client = clientRepository.findByUsername(username);
+        if (client == null) {
+            throw new NotFoundException("Client not found");
+        }
 
         if (!verifyPassword(username, password)) {
             throw new BadRequestException("Invalid password");
@@ -456,7 +465,7 @@ public class ClientAuthService {
     }
 
     public boolean isUserExists(String username) {
-        return clientRepository.findByUsername(username).isPresent() ||
+        return clientRepository.findByUsername(username) != null ||
                 clientRepository.findByTel(username).isPresent();
     }
 }
