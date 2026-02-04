@@ -105,6 +105,7 @@ spring:
           */generate-code,
           /*/*/set-phone-number,
           /*/refresh-token,
+          /*/exchange-token,
           /*/phone-verification.
           /*/send-otp,
           */send-otp,

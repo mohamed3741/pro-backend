@@ -43,6 +43,7 @@ logging:
           /*/*/generate-code,
           /*/login-with-otp,
           /*/set-phone-number,
+          /*/exchange-token,
           */generate-code,
           /*/*/set-phone-number,
           /*/refresh-token,
