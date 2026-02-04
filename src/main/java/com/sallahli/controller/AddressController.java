@@ -29,7 +29,7 @@ public class AddressController {
     // Standard CRUD Operations
     // ========================================================================
 
-    @GetMapping
+    @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all addresses", description = "Returns all non-archived addresses (Admin only)")
     @ApiResponses({
@@ -54,7 +54,7 @@ public class AddressController {
         return ResponseEntity.ok(addressService.findById(id));
     }
 
-    @PostMapping
+    @PostMapping("/create")
     @PreAuthorize("hasAnyRole('CLIENT', 'PRO', 'ADMIN')")
     @Operation(summary = "Create a new address", description = "Creates a standalone address")
     @ApiResponses({

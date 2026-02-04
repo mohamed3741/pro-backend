@@ -646,3 +646,6 @@ ALTER TABLE pro
 --changeset mohamdi:init-sql/7
 ALTER TABLE pro ADD COLUMN IF NOT EXISTS username VARCHAR(255);
 ALTER TABLE pro ADD CONSTRAINT uq_pro_username UNIQUE (username);
+
+--changeset mohamdi:init-sql/8
+ALTER TABLE client ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;

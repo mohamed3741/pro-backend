@@ -74,12 +74,11 @@ public class Client extends HasTimestamps implements Archivable {
 
     private String loginProvider;
 
+    @Builder.Default
+    private Boolean isDeleted = false;
+
     @ManyToMany
-    @JoinTable(
-            name = "client_address_relation",
-            joinColumns = @JoinColumn(name = "client_id"),
-            inverseJoinColumns = @JoinColumn(name = "address_id"))
+    @JoinTable(name = "client_address_relation", joinColumns = @JoinColumn(name = "client_id"), inverseJoinColumns = @JoinColumn(name = "address_id"))
     @Where(clause = "archived = false")
     private List<Address> addresses;
 }
-

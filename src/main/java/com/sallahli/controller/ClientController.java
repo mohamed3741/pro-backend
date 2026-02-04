@@ -1,6 +1,7 @@
 package com.sallahli.controller;
 
 import com.sallahli.dto.sallahli.ClientDTO;
+import com.sallahli.service.ClientAuthService;
 import com.sallahli.service.ClientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,10 +26,9 @@ import java.util.List;
 public class ClientController {
 
     private final ClientService clientService;
+    private final ClientAuthService clientAuthService;
 
-
-
-    @GetMapping
+    @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all clients", description = "Returns all clients (Admin only)")
     public ResponseEntity<List<ClientDTO>> findAll() {
@@ -43,7 +44,7 @@ public class ClientController {
         return ResponseEntity.ok(clientService.findById(id));
     }
 
-    @PostMapping
+    @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a client", description = "Registers a new client (Admin only)")
     @ApiResponses({
@@ -73,27 +74,35 @@ public class ClientController {
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasAuthority('CLIENT')")
+    @PutMapping("/update-profile-image")
+    public ResponseEntity<String> updateProfileImage(Authentication authentication,
+            @RequestParam("file") MultipartFile file) {
+        return clientService.updateClientProfileImage(authentication, file);
+    }
 
-
-    @PostMapping("/signup")
-    @Operation(summary = "Client Signup", description = "Register a new client account")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Client registered successfully"),
-            @ApiResponse(responseCode = "400", description = "Validation error or duplicate telephone")
-    })
-    public ResponseEntity<ClientDTO> signup(@RequestBody ClientDTO dto) {
-
-        ClientDTO created = clientService.signup(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    @PreAuthorize("hasAuthority('CLIENT')")
+    @PutMapping("/update-user")
+    public ResponseEntity<ClientDTO> updateProfile(Authentication authentication, @RequestBody ClientDTO clientDTO) {
+        try {
+            ClientDTO updatedClient = clientService.updateUser(authentication, clientDTO);
+            return ResponseEntity.ok(updatedClient);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
 
     @GetMapping("/me")
-    @PreAuthorize("hasRole('CLIENT')")
     @Operation(summary = "Get my profile", description = "Returns the current client's own profile")
-    public ResponseEntity<ClientDTO> getMyProfile(Authentication authentication) {
-        String username = authentication.getName();
-
-        return ResponseEntity.ok(clientService.findByUsername(username));
+    public ClientDTO findMe(Authentication authentication) {
+        if (authentication == null) {
+            return null;
+        }
+        ClientDTO client = clientService.findByUsername(authentication.getName());
+        if (client == null) {
+            client = clientAuthService.initClientFromToken(authentication);
+        }
+        return client;
     }
 
     @PutMapping("/me/profile")
@@ -107,8 +116,6 @@ public class ClientController {
         ClientDTO client = clientService.findByUsername(username);
         return ResponseEntity.ok(clientService.updateProfile(client.getId(), dto));
     }
-
-
 
     @GetMapping("/by-tel/{tel}")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN')")
@@ -134,10 +141,4 @@ public class ClientController {
         return ResponseEntity.ok(clientService.findByUsername(username));
     }
 
-    @GetMapping("/exists/{tel}")
-    @Operation(summary = "Check if client exists", description = "Returns whether a client with the given telephone exists")
-    public ResponseEntity<Boolean> existsByTel(@PathVariable String tel) {
-
-        return ResponseEntity.ok(clientService.existsByTel(tel));
-    }
 }

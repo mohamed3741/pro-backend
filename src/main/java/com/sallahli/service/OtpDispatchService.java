@@ -16,7 +16,7 @@ public class OtpDispatchService {
     public void sendVerificationCode(String verificationCode, String phoneNumber, DeliveryMethod deliveryMethod) {
         String message = "Your verification code is: " + verificationCode;
 
-        switch (deliveryMethod) {
+      /*  switch (deliveryMethod) {
             case SMS -> smsService.send(message, phoneNumber);
             case WHATSAPP -> whatsappService.sendOTP(verificationCode, phoneNumber);
             case EMAIL -> {
@@ -24,7 +24,7 @@ public class OtpDispatchService {
                 log.warn("Email delivery not implemented yet for phone: {}", phoneNumber);
             }
             default -> throw new IllegalArgumentException("Unsupported delivery method: " + deliveryMethod);
-        }
+        }*/
 
         log.info("Verification code sent to {} via {}", phoneNumber, deliveryMethod);
     }
