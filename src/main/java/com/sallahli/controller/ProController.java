@@ -26,9 +26,7 @@ public class ProController {
 
     private final ProService proService;
 
-
-
-    @GetMapping
+    @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all professionals", description = "Returns all professionals (Admin only)")
     public ResponseEntity<List<ProDTO>> findAll() {
@@ -44,7 +42,7 @@ public class ProController {
         return ResponseEntity.ok(proService.findById(id));
     }
 
-    @PostMapping
+    @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a professional", description = "Registers a new professional")
     @ApiResponses({
@@ -73,8 +71,6 @@ public class ProController {
         proService.delete(id);
         return ResponseEntity.noContent().build();
     }
-
-
 
     @PostMapping("/signup")
     @Operation(summary = "Pro Signup", description = "Register a new professional account")
@@ -169,8 +165,6 @@ public class ProController {
         return ResponseEntity.ok(proService.updateMyLowBalanceThreshold(proId, threshold));
     }
 
-
-
     @GetMapping("/by-tel/{tel}")
     @PreAuthorize("hasAnyRole('PRO', 'ADMIN')")
     @Operation(summary = "Find pro by telephone", description = "Returns professional by phone number")
@@ -178,7 +172,6 @@ public class ProController {
         log.debug("REST request to find pro by tel: {}", tel);
         return ResponseEntity.ok(proService.findByTel(tel));
     }
-
 
     @GetMapping("/kyc/{status}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -220,8 +213,6 @@ public class ProController {
         return ResponseEntity.ok(proService.rejectKyc(id, reason));
     }
 
-
-
     @PostMapping("/{id}/online")
     @PreAuthorize("hasAnyRole('PRO', 'ADMIN')")
     @Operation(summary = "Set online status", description = "Sets professional's online/offline status")
@@ -259,8 +250,6 @@ public class ProController {
         return ResponseEntity.ok(proService.findAvailableProsByTrade(tradeId, minBalance));
     }
 
-
-
     @PostMapping("/{id}/activate")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Activate account", description = "Activates a professional's account")
@@ -286,8 +275,6 @@ public class ProController {
         log.debug("REST request to update low balance threshold for pro {} to {}", id, threshold);
         return ResponseEntity.ok(proService.updateLowBalanceThreshold(id, threshold));
     }
-
-
 
     @GetMapping("/stats/count")
     @PreAuthorize("hasRole('ADMIN')")

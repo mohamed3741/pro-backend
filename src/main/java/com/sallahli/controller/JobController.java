@@ -31,7 +31,7 @@ public class JobController {
     // CRUD Operations
     // ========================================================================
 
-    @GetMapping
+    @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all jobs", description = "Returns all jobs (Admin only)")
     public ResponseEntity<List<JobDTO>> findAll() {

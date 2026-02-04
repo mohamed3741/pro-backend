@@ -17,7 +17,7 @@ public class MediaController {
 
     private final MediaService mediaService;
 
-    @PostMapping
+    @PostMapping("/create")
     @PreAuthorize("hasAnyAuthority('CLIENT', 'PRO', 'ADMIN')")
     @Operation(summary = "Upload or save media")
     public ResponseEntity<MediaDTO> saveMedia(@RequestBody MediaDTO mediaDTO) {

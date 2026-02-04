@@ -40,10 +40,17 @@ logging:
           /*/me,/*/*/me,
           /users/check-code,
           /*/check-code,
-          /*/generate-codelogin-with-otp,
-          /*/set-phone-number*/generate-code,
-          /*/*/set-phone-numberrefresh-token,
-          /*/phone-verificationsend-otp*/send-otpreset-password
+          /*/*/generate-code,
+          /*/login-with-otp,
+          /*/set-phone-number,
+          */generate-code,
+          /*/*/set-phone-number,
+          /*/refresh-token,
+          /*/phone-verification.
+          /*/send-otp,
+          */send-otp,
+          */reset-password,
+          /categories/active,
     oauth2:
       client:
         provider:

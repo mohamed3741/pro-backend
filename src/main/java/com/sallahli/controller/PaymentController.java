@@ -21,7 +21,7 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
-    @PostMapping
+    @PostMapping("/create")
     @PreAuthorize("hasAnyAuthority('CLIENT', 'PRO')")
     @Operation(summary = "Create a new payment")
     public ResponseEntity<PaymentDTO> createPayment(@RequestBody PaymentRequestDto request) {

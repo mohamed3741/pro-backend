@@ -37,7 +37,7 @@ public class LeadOfferController {
         return ResponseEntity.ok(leadOfferService.findById(id));
     }
 
-    @PostMapping
+    @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a lead offer", description = "Creates a lead offer for a specific pro and request")
     @ApiResponses({

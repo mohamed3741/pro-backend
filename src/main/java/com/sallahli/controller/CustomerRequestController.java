@@ -30,7 +30,7 @@ public class CustomerRequestController {
     // CRUD Operations
     // ========================================================================
 
-    @GetMapping
+    @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all customer requests", description = "Returns all customer requests (Admin only)")
     public ResponseEntity<List<CustomerRequestDTO>> findAll() {
@@ -46,7 +46,7 @@ public class CustomerRequestController {
         return ResponseEntity.ok(customerRequestService.findById(id));
     }
 
-    @PostMapping
+    @PostMapping("/create")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN')")
     @Operation(summary = "Create a new request", description = "Creates a new customer service request")
     @ApiResponses({
