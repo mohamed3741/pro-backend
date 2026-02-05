@@ -11,6 +11,8 @@ import com.sallahli.model.Enum.WorkflowType;
 import com.sallahli.repository.*;
 import com.sallahli.service.crud.AbstractCrudService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -230,10 +232,34 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
             return;
 
         // Resolve client
-        if (dto.getClient() != null && dto.getClient().getId() != null) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")); // Adjust role name if needed ("ADMIN" or
+                                                                       // "ROLE_ADMIN")
+
+        if (isAdmin) {
+            // ADMIN must provide client ID
+            if (dto.getClient() == null || dto.getClient().getId() == null) {
+                throw new BadRequestException("Admin must provide a client ID to create a request.");
+            }
             Client client = clientRepository.findById(dto.getClient().getId())
                     .orElseThrow(() -> new NotFoundException("Client not found with id: " + dto.getClient().getId()));
             entity.setClient(client);
+        } else {
+            // CLIENT (or PRO acting as client? Assume CLIENT role for request creation)
+            // Always resolve from token, ignore DTO client ID for security
+            if (authentication != null && authentication.isAuthenticated()
+                    && !authentication.getName().equals("anonymousUser")) {
+                String username = authentication.getName();
+                Client client = clientRepository.findByUsername(username);
+                if (client == null) {
+                    throw new NotFoundException("Authenticated client profile not found for user: " + username);
+                }
+                entity.setClient(client);
+            } else {
+                // Should not happen if endpoint is secured, but as a fallback/guard
+                throw new BadRequestException("Cannot create request without authentication.");
+            }
         }
 
         // Resolve category (required)
