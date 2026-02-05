@@ -92,7 +92,6 @@ public class ClientAuthController {
     }
 
     @PostMapping("/update-names")
-    @Operation(tags = {"Auth"})
     public ResponseEntity<ClientDTO> updateUserNames(
             @RequestBody UserDTO userDTO,
             Authentication authentication

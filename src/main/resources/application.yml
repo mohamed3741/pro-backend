@@ -111,6 +111,8 @@ spring:
           */send-otp,
           */reset-password,
           /categories/active,
+          /*/update-names,
+          /*/*/update-names,
     oauth2:
       client:
         provider:
