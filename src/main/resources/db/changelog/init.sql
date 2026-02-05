@@ -649,3 +649,10 @@ ALTER TABLE pro ADD CONSTRAINT uq_pro_username UNIQUE (username);
 
 --changeset mohamdi:init-sql/8
 ALTER TABLE client ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;
+
+--changeset mohamdi:init-sql/9
+ALTER TABLE customer_request ADD COLUMN IF NOT EXISTS address_id BIGINT;
+ALTER TABLE customer_request ADD CONSTRAINT fk_customer_request_address FOREIGN KEY (address_id) REFERENCES address(id);
+
+--changeset mohamdi:init-sql/10
+ALTER TABLE customer_request ADD COLUMN IF NOT EXISTS archived BOOLEAN DEFAULT FALSE;

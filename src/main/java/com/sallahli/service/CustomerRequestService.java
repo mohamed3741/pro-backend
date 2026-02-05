@@ -3,6 +3,7 @@ package com.sallahli.service;
 import com.sallahli.dto.sallahli.CustomerRequestDTO;
 import com.sallahli.exceptions.BadRequestException;
 import com.sallahli.exceptions.NotFoundException;
+import com.sallahli.mapper.AddressMapper;
 import com.sallahli.mapper.CustomerRequestMapper;
 import com.sallahli.model.*;
 import com.sallahli.model.Enum.RequestStatus;
@@ -25,18 +26,24 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
     private final ClientRepository clientRepository;
     private final CategoryRepository categoryRepository;
     private final LeadOfferService leadOfferService;
+    private final AddressRepository addressRepository;
+    private final AddressMapper addressMapper;
 
     public CustomerRequestService(CustomerRequestRepository customerRequestRepository,
             CustomerRequestMapper customerRequestMapper,
             ClientRepository clientRepository,
             CategoryRepository categoryRepository,
-            LeadOfferService leadOfferService) {
+            LeadOfferService leadOfferService,
+            AddressRepository addressRepository,
+            AddressMapper addressMapper) {
         super(customerRequestRepository, customerRequestMapper);
         this.customerRequestRepository = customerRequestRepository;
         this.customerRequestMapper = customerRequestMapper;
         this.clientRepository = clientRepository;
         this.categoryRepository = categoryRepository;
         this.leadOfferService = leadOfferService;
+        this.addressRepository = addressRepository;
+        this.addressMapper = addressMapper;
     }
 
     // ========================================================================
@@ -61,7 +68,6 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
     // Request Creation & Lifecycle
     // ========================================================================
 
-    
     @Override
     @Transactional
     public CustomerRequestDTO create(CustomerRequestDTO dto) {
@@ -81,7 +87,6 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
         return getMapper().toDto(saved);
     }
 
-    
     @Transactional
     public CustomerRequestDTO broadcastRequest(Long requestId) {
         CustomerRequest request = findCRById(requestId);
@@ -113,7 +118,6 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
         return getMapper().toDto(saved);
     }
 
-    
     @Transactional
     public CustomerRequestDTO cancelRequest(Long requestId, String reason) {
         CustomerRequest request = findCRById(requestId);
@@ -133,7 +137,6 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
         return getMapper().toDto(saved);
     }
 
-    
     @Transactional
     public CustomerRequestDTO assignRequest(Long requestId) {
         CustomerRequest request = findCRById(requestId);
@@ -151,7 +154,6 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
         return getMapper().toDto(saved);
     }
 
-    
     @Transactional
     public CustomerRequestDTO completeRequest(Long requestId) {
         CustomerRequest request = findCRById(requestId);
@@ -168,35 +170,30 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
     // Query Methods
     // ========================================================================
 
-    
     @Transactional(readOnly = true)
     public List<CustomerRequestDTO> findByClientId(Long clientId) {
         List<CustomerRequest> requests = customerRequestRepository.findByClientIdOrderByCreatedAtDesc(clientId);
         return getMapper().toDtos(requests);
     }
 
-    
     @Transactional(readOnly = true)
     public List<CustomerRequestDTO> findByStatus(RequestStatus status) {
         List<CustomerRequest> requests = customerRequestRepository.findByStatus(status);
         return getMapper().toDtos(requests);
     }
 
-    
     @Transactional(readOnly = true)
     public List<CustomerRequestDTO> findByCategoryIdAndStatus(Long categoryId, RequestStatus status) {
         List<CustomerRequest> requests = customerRequestRepository.findByCategoryIdAndStatus(categoryId, status);
         return getMapper().toDtos(requests);
     }
 
-    
     @Transactional(readOnly = true)
     public List<CustomerRequestDTO> findActiveBroadcastedRequests() {
         List<CustomerRequest> requests = customerRequestRepository.findActiveBroadcastedRequests(LocalDateTime.now());
         return getMapper().toDtos(requests);
     }
 
-    
     @Transactional(readOnly = true)
     public List<CustomerRequestDTO> findRequestsInBoundingBox(Double minLat, Double maxLat, Double minLng,
             Double maxLng) {
@@ -209,7 +206,6 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
     // Expiration handling
     // ========================================================================
 
-    
     @Transactional
     public int expireOldRequests(int hoursOld) {
         LocalDateTime cutoff = LocalDateTime.now().minusHours(hoursOld);
@@ -246,6 +242,54 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
                     .orElseThrow(
                             () -> new NotFoundException("Category not found with id: " + dto.getCategory().getId()));
             entity.setCategory(category);
+        }
+
+        // Resolve Address
+        resolveAddress(entity, dto);
+    }
+
+    private void resolveAddress(CustomerRequest entity, CustomerRequestDTO dto) {
+        if (dto.getAddress() != null && dto.getAddress().getId() != null) {
+            // Case 1: Existing Address ID provided
+            Address address = addressRepository.findById(dto.getAddress().getId())
+                    .orElseThrow(() -> new NotFoundException("Address not found with id: " + dto.getAddress().getId()));
+            entity.setAddress(address);
+
+            // Override local coordinates with address coordinates if not explicitly set?
+            // For now, let's assume the request coordinates take precedence if set,
+            // otherwise use address
+            if (entity.getLatitude() == null)
+                entity.setLatitude(address.getLatitude());
+            if (entity.getLongitude() == null)
+                entity.setLongitude(address.getLongitude());
+            if (entity.getAddressText() == null)
+                entity.setAddressText(address.getFormattedAddress());
+
+        } else if (dto.getLatitude() != null && dto.getLongitude() != null) {
+            // Case 2: No Address ID, but coordinates provided -> Create new Address for
+            // client
+
+            Address newAddress = Address.builder()
+                    .latitude(dto.getLatitude())
+                    .longitude(dto.getLongitude())
+                    .formattedAddress(dto.getAddressText())
+                    .name("Request Address") // Default name, maybe refine later
+                    // .description(dto.getLandmark()) // Maybe map landmark to description?
+                    .build();
+
+            // Link to client if exists
+            if (entity.getClient() != null) {
+                // We're adding this address to the client's address list
+                // However, Client <-> Address is ManyToMany.
+                // For simplicity here, we just save the address. Linking to client might
+                // require helper in Client entity or manual relation save.
+                // Let's just save the address first.
+                // If we want to persist it as "Saved Address" for the client, we'd need to add
+                // it to client.getAddresses().add(newAddress) and save client/address.
+            }
+
+            Address savedAddress = addressRepository.save(newAddress);
+            entity.setAddress(savedAddress);
         }
     }
 
