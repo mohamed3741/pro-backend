@@ -9,6 +9,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import com.sallahli.model.Enum.MediaEnum;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
+
 @RestController
 @RequestMapping("/media")
 @RequiredArgsConstructor
@@ -17,11 +21,12 @@ public class MediaController {
 
     private final MediaService mediaService;
 
-    @PostMapping("/create")
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('CLIENT', 'PRO', 'ADMIN')")
     @Operation(summary = "Upload or save media")
-    public ResponseEntity<MediaDTO> saveMedia(@RequestBody MediaDTO mediaDTO) {
-        return ResponseEntity.ok(mediaService.saveMedia(mediaDTO));
+    public ResponseEntity<MediaDTO> saveMedia(@RequestParam("file") MultipartFile file,
+            @RequestParam("type") MediaEnum type) {
+        return ResponseEntity.ok(mediaService.saveMedia(file, type));
     }
 
     @GetMapping("/{id}")
