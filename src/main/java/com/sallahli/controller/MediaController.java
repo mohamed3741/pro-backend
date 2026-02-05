@@ -24,7 +24,8 @@ public class MediaController {
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('CLIENT', 'PRO', 'ADMIN')")
     @Operation(summary = "Upload or save media")
-    public ResponseEntity<MediaDTO> saveMedia(@RequestParam("file") MultipartFile file,
+    public ResponseEntity<MediaDTO> saveMedia(
+            @RequestPart("file") MultipartFile file,
             @RequestParam("type") MediaEnum type) {
         return ResponseEntity.ok(mediaService.saveMedia(file, type));
     }
