@@ -101,7 +101,7 @@ media-config:
     folder: pro
 
 whatsapp:
-  bearer-token: ${WHATSAPP_BEARER_TOKEN:your-bearer-token-here}
+  bearer-token: 836ca2abdd06da7171841fccbccc7cb1adec092d3c44a8965db60208ce00ffe5
 
 config:
   activate:

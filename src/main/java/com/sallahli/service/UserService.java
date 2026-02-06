@@ -389,7 +389,7 @@ public class UserService {
         try {
             String otp = user.getAttributes().get(KeycloakUtils.VERIFICATION_CODE_ATTRIBUTE).get(0);
             StringBuilder sb = new StringBuilder();
-            sb.append("Your Almersoul verification code is :  \n ").append(otp);
+            sb.append("Your Sallahli verification code is :  \n ").append(otp);
 
             log.info("Sending verification code via {}: {}", method, sb);
 

@@ -44,8 +44,6 @@ public class ClientAuthController {
         }
     }
 
-
-
     @GetMapping("/generate-code")
     public ResponseEntity<Boolean> generateCode(
             @RequestParam String username,
@@ -94,16 +92,17 @@ public class ClientAuthController {
     @PostMapping("/update-names")
     public ResponseEntity<ClientDTO> updateUserNames(
             @RequestBody UserDTO userDTO,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         String username = authentication.getName();
         return ResponseEntity.ok(clientAuthService.updateUserNames(username, userDTO));
     }
-
 
     @GetMapping("/exists/{username}")
     public ResponseEntity<Boolean> isUsernameExists(@PathVariable String username) {
         boolean exists = clientAuthService.isUserExists(username);
         return ResponseEntity.ok(exists);
     }
+
+
+
 }
