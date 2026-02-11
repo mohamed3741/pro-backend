@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -38,5 +40,10 @@ public interface CustomerRequestRepository extends GenericRepository<CustomerReq
             @Param("maxLat") Double maxLat,
             @Param("minLng") Double minLng,
             @Param("maxLng") Double maxLng);
+
+    Long countByStatus(RequestStatus status);
+
+    @Query("SELECT r FROM CustomerRequest r ORDER BY r.createdAt DESC")
+    List<CustomerRequest> findRecentRequests(Pageable pageable);
 }
 
