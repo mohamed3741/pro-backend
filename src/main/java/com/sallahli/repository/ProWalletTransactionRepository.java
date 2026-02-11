@@ -28,5 +28,8 @@ public interface ProWalletTransactionRepository extends GenericRepository<ProWal
 
     @Query("SELECT SUM(t.amount) FROM ProWalletTransaction t WHERE t.pro.id = :proId AND t.type = 'DEBIT'")
     Long getTotalDebitsByProId(@Param("proId") Long proId);
+
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM ProWalletTransaction t WHERE t.type = 'CREDIT'")
+    Long getTotalRevenue();
 }
 
