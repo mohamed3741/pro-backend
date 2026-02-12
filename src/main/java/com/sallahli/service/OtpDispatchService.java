@@ -18,10 +18,10 @@ public class OtpDispatchService {
         switch (deliveryMethod) {
            // case SMS -> smsService.send(message, phoneNumber);
             case WHATSAPP -> whatsappService.sendOTP(verificationCode, phoneNumber);
-           /* case EMAIL -> {
+            case EMAIL -> {
                 // TODO: Implement email service
                 log.warn("Email delivery not implemented yet for phone: {}", phoneNumber);
-            }*/
+            }
            // default -> throw new IllegalArgumentException("Unsupported delivery method: " + deliveryMethod);
         }
 

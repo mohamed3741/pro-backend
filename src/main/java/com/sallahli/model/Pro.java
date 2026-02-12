@@ -27,7 +27,7 @@ public class Pro extends User implements Archivable {
     private String profilePhoto;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trade_id", nullable = false)
+    @JoinColumn(name = "trade_id")
     private Category trade;
 
     @ManyToOne(fetch = FetchType.LAZY)
