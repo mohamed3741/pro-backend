@@ -4,14 +4,14 @@ import com.sallahli.model.Enum.AppType;
 import com.sallahli.model.Enum.PlatformType;
 import com.sallahli.utils.HasTimestampsDTO;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class AppConfigBundleDto extends HasTimestampsDTO {
@@ -28,4 +28,3 @@ public class AppConfigBundleDto extends HasTimestampsDTO {
     private String hash;
     private String description;
 }
-

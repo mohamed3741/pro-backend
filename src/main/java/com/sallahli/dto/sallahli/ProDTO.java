@@ -1,27 +1,24 @@
 package com.sallahli.dto.sallahli;
 
 import com.sallahli.dto.MediaDTO;
+import com.sallahli.dto.UserDTO;
 import com.sallahli.model.Enum.KycStatus;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProDTO {
+@EqualsAndHashCode(callSuper = true)
+public class ProDTO extends UserDTO {
 
-    private Long id;
-    private String tel;
-    private String username;
-    private String firstName;
-    private String lastName;
     private String fullName;
-    private String email;
     private String profilePhoto;
     private CategoryDTO trade;
     private ZoneDTO baseZone;
@@ -33,7 +30,7 @@ public class ProDTO {
     private KycStatus kycStatus;
     private LocalDateTime kycSubmittedAt;
     private LocalDateTime approvedAt;
-    private Long approvedBy;
+    private AdminDTO approvedByAdmin;
 
     private Double currentLatitude;
     private Double currentLongitude;

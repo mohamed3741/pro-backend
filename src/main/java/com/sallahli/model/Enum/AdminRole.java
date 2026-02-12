@@ -1,17 +1,10 @@
 package com.sallahli.model.Enum;
 
-public enum UserRoleEnum {
+public enum AdminRole {
     SUPER_ADMIN,
     ADMIN,
     AGENT,
-    CLIENT,
-    PRO,
-    DRIVER,
-    PARTNER_MANAGER,
-    PARTNER_OWNER,
-    EMPLOYE,
     CUSTOMER_SUPPORT_AGENT,
-    ADMIN_PARTNER_MANAGER,
     LOGISTICS_COORDINATOR,
     ACCOUNTANT
 }

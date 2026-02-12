@@ -10,10 +10,9 @@ public class KeycloakUtils {
     public static final String VERIFICATION_CODE_EXPIRATION_ATTRIBUTE = "verificationCodeExpiration";
     public static final String IS_ARCHIVED_ATTRIBUTE = "isArchived";
 
-
-
     // Roles
     public static final String CLIENT_ROLE = "CLIENT";
+    public static final String PRO_ROLE = "PRO";
     public static final String PARTNER_MANAGER_ROLE = "PARTNER_MANAGER";
     public static final String PARTNER_OWNER_ROLE = "PARTNER_OWNER";
     public static final String DRIVER_ROLE = "DRIVER";
@@ -35,5 +34,3 @@ public class KeycloakUtils {
         // Utility class - prevent instantiation
     }
 }
-
-
