@@ -1,5 +1,6 @@
 package com.sallahli.controller;
 
+import com.sallahli.dto.sallahli.CategoryDTO;
 import com.sallahli.dto.sallahli.ProDTO;
 import com.sallahli.model.Enum.KycStatus;
 import com.sallahli.service.ProService;
@@ -167,6 +168,24 @@ public class ProController {
             @Parameter(description = "New threshold value") @RequestParam Long threshold) {
         log.debug("REST request for pro {} to update low balance threshold to {}", proId, threshold);
         return ResponseEntity.ok(proService.updateMyLowBalanceThreshold(proId, threshold));
+    }
+
+    @PutMapping("/categories")
+    @PreAuthorize("hasRole('PRO')")
+    @Operation(summary = "Set my categories", description = "Pro sets the categories they work in")
+    public ResponseEntity<ProDTO> setCategories(
+            @RequestParam Long proId,
+            @RequestBody List<Long> categoryIds) {
+        log.debug("REST request for pro {} to set categories: {}", proId, categoryIds);
+        return ResponseEntity.ok(proService.setCategories(proId, categoryIds));
+    }
+
+    @GetMapping("/categories")
+    @PreAuthorize("hasRole('PRO')")
+    @Operation(summary = "Get my categories", description = "Returns the categories the pro works in")
+    public ResponseEntity<List<CategoryDTO>> getCategories(@RequestParam Long proId) {
+        log.debug("REST request to get categories for pro {}", proId);
+        return ResponseEntity.ok(proService.getCategories(proId));
     }
 
     // ========================================================================

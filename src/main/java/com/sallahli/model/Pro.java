@@ -6,6 +6,8 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "pro")
@@ -90,6 +92,11 @@ public class Pro extends User implements Archivable {
 
     @Builder.Default
     private Boolean isActive = true;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "pro_category", joinColumns = @JoinColumn(name = "pro_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
+    @Builder.Default
+    private Set<Category> categories = new HashSet<>();
 
     @Builder.Default
     private Boolean archived = false;
