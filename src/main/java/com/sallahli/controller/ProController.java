@@ -92,9 +92,17 @@ public class ProController {
     @GetMapping("/me")
     @PreAuthorize("hasRole('PRO')")
     @Operation(summary = "Get my profile", description = "Returns the current pro's own profile")
-    public ResponseEntity<ProDTO> getMyProfile(@RequestParam Long proId) {
-        log.debug("REST request to get own profile for pro {}", proId);
-        return ResponseEntity.ok(proService.getMyProfile(proId));
+    public ResponseEntity<ProDTO> getMyProfile(org.springframework.security.core.Authentication authentication) {
+        String username = authentication.getName();
+        ProDTO pro = null;
+
+        if (proService.existsByTel(username)) {
+            pro = proService.findByTel(username);
+        } else {
+            pro = proService.initProFromToken(authentication);
+        }
+
+        return ResponseEntity.ok(pro);
     }
 
     @PutMapping("/me/profile")

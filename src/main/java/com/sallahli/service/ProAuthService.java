@@ -309,7 +309,7 @@ public class ProAuthService {
         if (users.isEmpty()) {
             throw new BadRequestException("User not found in Keycloak: " + username);
         }
-        UserRepresentation user = users.get(0);
+        UserRepresentation user = usersResource.get(users.get(0).getId()).toRepresentation();
 
         String retryNumber = user.firstAttribute(KeycloakUtils.VERIFICATION_CODE_RETRY_NUMBER);
         int nbRetry = retryNumber != null ? Integer.parseInt(retryNumber) : 0;

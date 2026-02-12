@@ -85,6 +85,38 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         return proRepository.findByTel(tel).isPresent();
     }
 
+    @Transactional
+    public ProDTO initProFromToken(org.springframework.security.core.Authentication authentication) {
+        String username = authentication.getName();
+        org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken jwt = (org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken) authentication;
+        java.util.Map<String, Object> attrs = jwt.getTokenAttributes();
+        // attribute sub is available if needed: String sub =
+        // java.util.Objects.toString(attrs.get("sub"));
+
+        Pro pro = new Pro();
+        pro.setUsername(username);
+        pro.setTel(java.util.Objects.toString(attrs.get("phone_number"), null));
+        pro.setFirstName(java.util.Objects.toString(attrs.get("given_name"), null));
+        pro.setLastName(java.util.Objects.toString(attrs.get("family_name"), null)); // Keycloak often uses family_name
+        pro.setEmail(java.util.Objects.toString(attrs.get("email"), null));
+
+        // administrative fields
+        pro.setIsActive(false); // Default inactive until KYC
+        pro.setArchived(false);
+        pro.setOnline(false);
+        pro.setKycStatus(KycStatus.PENDING);
+
+        // defaults
+        pro.setWalletBalance(0L);
+        pro.setRatingAvg(5.0);
+        pro.setRatingCount(0L);
+        pro.setJobsCompleted(0L);
+        pro.setLowBalanceThreshold(50L);
+
+        Pro saved = proRepository.save(pro);
+        return getMapper().toDto(saved);
+    }
+
     // ========================================================================
     // Search
     // ========================================================================
