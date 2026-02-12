@@ -305,7 +305,11 @@ public class ProAuthService {
 
     public Boolean generateVerificationCode(String username, DeliveryMethod deliveryMethod) {
         UsersResource usersResource = keycloak.realm(realm).users();
-        UserRepresentation user = usersResource.search(username, true).get(0);
+        List<UserRepresentation> users = usersResource.search(username, true);
+        if (users.isEmpty()) {
+            throw new BadRequestException("User not found in Keycloak: " + username);
+        }
+        UserRepresentation user = users.get(0);
 
         String retryNumber = user.firstAttribute(KeycloakUtils.VERIFICATION_CODE_RETRY_NUMBER);
         int nbRetry = retryNumber != null ? Integer.parseInt(retryNumber) : 0;

@@ -25,12 +25,16 @@ public class ProAuthController {
 
     @PostMapping("/signup")
     @Operation(summary = "Pro Signup", description = "Register a new professional account via Keycloak")
-    public ResponseEntity<ProDTO> signup(@RequestBody ProDTO proDTO) {
+    public ResponseEntity<?> signup(@RequestBody ProDTO proDTO) {
         try {
             ProDTO result = proAuthService.signup(proDTO);
             return ResponseEntity.ok(result);
+        } catch (com.sallahli.exceptions.BadRequestException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (com.sallahli.exceptions.ConflictAccountException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body("An error occurred: " + e.getMessage());
         }
     }
 
@@ -47,14 +51,20 @@ public class ProAuthController {
 
     @GetMapping("/generate-code")
     @Operation(summary = "Generate OTP code", description = "Generate and send a verification code to the professional")
-    public ResponseEntity<Boolean> generateCode(
+    public ResponseEntity<?> generateCode(
             @RequestParam String username,
             @RequestParam(defaultValue = "WHATSAPP") DeliveryMethod deliveryMethod) {
         try {
+            // Handle URL encoding issue where '+' becomes ' '
+            username = username.trim();
+            if (!username.startsWith("+") && username.matches("\\d+")) {
+                username = "+" + username;
+            }
+
             Boolean result = proAuthService.generateVerificationCode(username, deliveryMethod);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(false);
+            return ResponseEntity.badRequest().body("Error generating code: " + e.getMessage());
         }
     }
 
@@ -77,29 +87,6 @@ public class ProAuthController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error deleting profile");
         }
-    }
-
-    @PreAuthorize("hasAuthority('PRO')")
-    @PostMapping("/delete-with-otp")
-    @Operation(summary = "Delete account (OTP)", description = "Delete professional account using OTP verification")
-    public ResponseEntity<String> deleteWithOtp(Authentication authentication, @RequestBody Map<String, String> body) {
-        try {
-            proAuthService.deleteUserWithOtp(authentication, body.get("otp"));
-            return ResponseEntity.ok("User successfully deleted");
-        } catch (com.amazonaws.services.apigateway.model.BadRequestException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Incorrect otp");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error deleting profile");
-        }
-    }
-
-    @PostMapping("/update-names")
-    @Operation(summary = "Update names", description = "Update professional's first and last name")
-    public ResponseEntity<ProDTO> updateUserNames(
-            @RequestBody ProDTO proDTO,
-            Authentication authentication) {
-        String username = authentication.getName();
-        return ResponseEntity.ok(proAuthService.updateUserNames(username, proDTO));
     }
 
     @GetMapping("/exists/{username}")

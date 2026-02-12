@@ -700,3 +700,6 @@ ALTER TABLE payment
 ALTER TABLE payment
     ADD CONSTRAINT fk_payment_admin
         FOREIGN KEY (admin_id) REFERENCES admin(id) ON DELETE SET NULL;
+
+--changeset mohamdi:init-sql/12
+ALTER TABLE pro ALTER COLUMN trade_id DROP NOT NULL;
