@@ -2,13 +2,14 @@ package com.sallahli.dto;
 
 import com.sallahli.utils.HasTimestampsDTO;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.io.Serial;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @ToString(onlyExplicitlyIncluded = true)
 public class OnlineTransactionDTO extends HasTimestampsDTO {
 

@@ -26,6 +26,10 @@ public class ProController {
 
     private final ProService proService;
 
+    // ========================================================================
+    // Admin CRUD
+    // ========================================================================
+
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all professionals", description = "Returns all professionals (Admin only)")
@@ -44,7 +48,7 @@ public class ProController {
 
     @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Create a professional", description = "Registers a new professional")
+    @Operation(summary = "Create a professional", description = "Registers a new professional (Admin)")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Pro created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input")
@@ -72,17 +76,17 @@ public class ProController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/signup")
-    @Operation(summary = "Pro Signup", description = "Register a new professional account")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Pro registered successfully"),
-            @ApiResponse(responseCode = "400", description = "Validation error or duplicate telephone")
-    })
-    public ResponseEntity<ProDTO> signup(@RequestBody ProDTO dto) {
-        log.debug("REST request for pro signup: {}", dto.getTel());
-        ProDTO created = proService.signup(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    @PutMapping("/{id}/update")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Admin update pro", description = "Admin updates professional details")
+    public ResponseEntity<ProDTO> adminUpdate(@PathVariable Long id, @RequestBody ProDTO dto) {
+        log.debug("REST request for admin to update pro {}", id);
+        return ResponseEntity.ok(proService.adminUpdate(id, dto));
     }
+
+    // ========================================================================
+    // Pro Self-Service (Mobile App)
+    // ========================================================================
 
     @GetMapping("/me")
     @PreAuthorize("hasRole('PRO')")
@@ -165,6 +169,10 @@ public class ProController {
         return ResponseEntity.ok(proService.updateMyLowBalanceThreshold(proId, threshold));
     }
 
+    // ========================================================================
+    // Search & Lookup
+    // ========================================================================
+
     @GetMapping("/by-tel/{tel}")
     @PreAuthorize("hasAnyRole('PRO', 'ADMIN')")
     @Operation(summary = "Find pro by telephone", description = "Returns professional by phone number")
@@ -172,6 +180,18 @@ public class ProController {
         log.debug("REST request to find pro by tel: {}", tel);
         return ResponseEntity.ok(proService.findByTel(tel));
     }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Search professionals", description = "Search pros by name, username or phone number")
+    public ResponseEntity<List<ProDTO>> searchPros(@RequestParam String q) {
+        log.debug("REST request to search pros with query: {}", q);
+        return ResponseEntity.ok(proService.searchPros(q));
+    }
+
+    // ========================================================================
+    // KYC Management (Admin)
+    // ========================================================================
 
     @GetMapping("/kyc/{status}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -198,9 +218,9 @@ public class ProController {
     })
     public ResponseEntity<ProDTO> approveKyc(
             @PathVariable Long id,
-            @Parameter(description = "Approver user ID") @RequestParam Long approvedBy) {
+            @Parameter(description = "Admin ID who approves this KYC") @RequestParam Long adminId) {
         log.debug("REST request to approve KYC for pro {}", id);
-        return ResponseEntity.ok(proService.approveKyc(id, approvedBy));
+        return ResponseEntity.ok(proService.approveKyc(id, adminId));
     }
 
     @PostMapping("/{id}/kyc/reject")
@@ -212,6 +232,18 @@ public class ProController {
         log.debug("REST request to reject KYC for pro {} with reason: {}", id, reason);
         return ResponseEntity.ok(proService.rejectKyc(id, reason));
     }
+
+    @PutMapping("/{id}/kyc/reset")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Reset KYC status", description = "Resets a professional's KYC status back to NONE")
+    public ResponseEntity<ProDTO> resetKyc(@PathVariable Long id) {
+        log.debug("REST request to reset KYC for pro {}", id);
+        return ResponseEntity.ok(proService.resetKyc(id));
+    }
+
+    // ========================================================================
+    // Online/Availability Status
+    // ========================================================================
 
     @PostMapping("/{id}/online")
     @PreAuthorize("hasAnyRole('PRO', 'ADMIN')")
@@ -250,6 +282,10 @@ public class ProController {
         return ResponseEntity.ok(proService.findAvailableProsByTrade(tradeId, minBalance));
     }
 
+    // ========================================================================
+    // Account Management (Admin)
+    // ========================================================================
+
     @PostMapping("/{id}/activate")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Activate account", description = "Activates a professional's account")
@@ -275,6 +311,30 @@ public class ProController {
         log.debug("REST request to update low balance threshold for pro {} to {}", id, threshold);
         return ResponseEntity.ok(proService.updateLowBalanceThreshold(id, threshold));
     }
+
+    // ========================================================================
+    // Archived Pros (Admin)
+    // ========================================================================
+
+    @GetMapping("/archived")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get archived professionals", description = "Returns all archived/deleted professionals")
+    public ResponseEntity<List<ProDTO>> findArchived() {
+        log.debug("REST request to get archived pros");
+        return ResponseEntity.ok(proService.findArchived());
+    }
+
+    @PostMapping("/{id}/restore")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Restore professional", description = "Restores an archived professional account")
+    public ResponseEntity<ProDTO> restoreAccount(@PathVariable Long id) {
+        log.debug("REST request to restore pro account {}", id);
+        return ResponseEntity.ok(proService.restoreAccount(id));
+    }
+
+    // ========================================================================
+    // Statistics
+    // ========================================================================
 
     @GetMapping("/stats/count")
     @PreAuthorize("hasRole('ADMIN')")

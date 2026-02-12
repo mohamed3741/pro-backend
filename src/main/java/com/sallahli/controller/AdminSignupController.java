@@ -1,6 +1,6 @@
 package com.sallahli.controller;
 
-import com.sallahli.dto.UserDTO;
+import com.sallahli.dto.sallahli.AdminDTO;
 import com.sallahli.service.AdminSignupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("/auth/admin")
 @RequiredArgsConstructor
 @Tag(name = "Admin Signup", description = "Admin registration APIs")
 public class AdminSignupController {
@@ -20,8 +20,8 @@ public class AdminSignupController {
     private final AdminSignupService adminSignupService;
 
     @PostMapping("/signup")
-    @Operation(summary = "Register new admin")
-    public ResponseEntity<UserDTO> signup(@RequestBody UserDTO userDTO) {
-        return ResponseEntity.ok(adminSignupService.signup(userDTO));
+    @Operation(summary = "Register new admin with role assignment")
+    public ResponseEntity<AdminDTO> signup(@RequestBody AdminDTO adminDTO) {
+        return ResponseEntity.ok(adminSignupService.signup(adminDTO));
     }
 }

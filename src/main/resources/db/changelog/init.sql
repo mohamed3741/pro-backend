@@ -656,3 +656,47 @@ ALTER TABLE customer_request ADD CONSTRAINT fk_customer_request_address FOREIGN 
 
 --changeset mohamdi:init-sql/10
 ALTER TABLE customer_request ADD COLUMN IF NOT EXISTS archived BOOLEAN DEFAULT FALSE;
+
+--changeset mohamdi:init-sql/11
+
+CREATE SEQUENCE IF NOT EXISTS admin_id_seq START WITH 1 INCREMENT BY 1;
+
+CREATE TABLE IF NOT EXISTS admin (
+    id              BIGINT PRIMARY KEY DEFAULT nextval('admin_id_seq'),
+    tel             VARCHAR(20),
+    username        VARCHAR(255) NOT NULL,
+    email           VARCHAR(255),
+    first_name      VARCHAR(255),
+    last_name       VARCHAR(255),
+    profile_photo   VARCHAR(255),
+    role            VARCHAR(50),
+    department      VARCHAR(255),
+    is_active       BOOLEAN DEFAULT TRUE,
+    archived        BOOLEAN DEFAULT FALSE,
+    last_login_at   TIMESTAMP,
+    created_at      TIMESTAMP,
+    updated_at      TIMESTAMP,
+    CONSTRAINT uq_admin_username UNIQUE (username)
+);
+
+CREATE INDEX IF NOT EXISTS idx_admin_username ON admin(username);
+CREATE INDEX IF NOT EXISTS idx_admin_role ON admin(role);
+CREATE INDEX IF NOT EXISTS idx_admin_is_active ON admin(is_active);
+
+ALTER TABLE pro ADD COLUMN IF NOT EXISTS approved_by_admin_id BIGINT;
+
+ALTER TABLE pro
+    DROP CONSTRAINT IF EXISTS fk_pro_approved_by_admin;
+
+ALTER TABLE pro
+    ADD CONSTRAINT fk_pro_approved_by_admin
+        FOREIGN KEY (approved_by_admin_id) REFERENCES admin(id) ON DELETE SET NULL;
+
+ALTER TABLE pro DROP COLUMN IF EXISTS approved_by;
+
+ALTER TABLE payment
+    DROP CONSTRAINT IF EXISTS fk_payment_admin;
+
+ALTER TABLE payment
+    ADD CONSTRAINT fk_payment_admin
+        FOREIGN KEY (admin_id) REFERENCES admin(id) ON DELETE SET NULL;

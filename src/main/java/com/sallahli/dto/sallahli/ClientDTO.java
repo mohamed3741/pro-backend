@@ -38,6 +38,7 @@ public class ClientDTO {
     private Boolean adsAccepted;
     private Long referralCode;
     private Long referredBy;
+    private String type;
     private Long referralCounter;
     private String loginProvider;
     private List<AddressDTO> addresses;

@@ -4,11 +4,13 @@ import com.sallahli.dto.sallahli.ProDTO;
 import com.sallahli.exceptions.BadRequestException;
 import com.sallahli.exceptions.NotFoundException;
 import com.sallahli.mapper.ProMapper;
+import com.sallahli.model.Admin;
 import com.sallahli.model.Category;
 import com.sallahli.model.Enum.KycStatus;
 import com.sallahli.model.Media;
 import com.sallahli.model.Pro;
 import com.sallahli.model.Zone;
+import com.sallahli.repository.AdminRepository;
 import com.sallahli.repository.CategoryRepository;
 import com.sallahli.repository.MediaRepository;
 import com.sallahli.repository.ProRepository;
@@ -29,17 +31,20 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     private final CategoryRepository categoryRepository;
     private final ZoneRepository zoneRepository;
     private final MediaRepository mediaRepository;
+    private final AdminRepository adminRepository;
 
     public ProService(ProRepository proRepository,
             ProMapper proMapper,
             CategoryRepository categoryRepository,
             ZoneRepository zoneRepository,
-            MediaRepository mediaRepository) {
+            MediaRepository mediaRepository,
+            AdminRepository adminRepository) {
         super(proRepository, proMapper);
         this.proRepository = proRepository;
         this.categoryRepository = categoryRepository;
         this.zoneRepository = zoneRepository;
         this.mediaRepository = mediaRepository;
+        this.adminRepository = adminRepository;
     }
 
     // ========================================================================
@@ -77,39 +82,13 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     }
 
     // ========================================================================
-    // Self-Service: Registration & Signup
+    // Search
     // ========================================================================
 
-    @Transactional
-    public ProDTO signup(ProDTO dto) {
-        // Validate required fields for signup
-        if (dto.getTel() == null || dto.getTel().isBlank()) {
-            throw new BadRequestException("Telephone number is required");
-        }
-        if (dto.getUsername() == null || dto.getUsername().isBlank()) {
-            throw new BadRequestException("Username is required");
-        }
-        if (dto.getFirstName() == null || dto.getFirstName().isBlank()) {
-            throw new BadRequestException("First name is required");
-        }
-        if (dto.getLastName() == null || dto.getLastName().isBlank()) {
-            throw new BadRequestException("Last name is required");
-        }
-
-        // Check if telephone already exists
-        if (existsByTel(dto.getTel())) {
-            throw new BadRequestException("A pro with this telephone number already exists");
-        }
-
-        // Check if username already exists
-        if (proRepository.findByUsername(dto.getUsername()).isPresent()) {
-            throw new BadRequestException("A pro with this username already exists");
-        }
-
-        // Create the pro with defaults set in beforePersist
-        ProDTO created = create(dto);
-        log.info("New pro signup with telephone: {}", dto.getTel());
-        return created;
+    @Transactional(readOnly = true)
+    public List<ProDTO> searchPros(String query) {
+        List<Pro> pros = proRepository.searchByNameOrTel(query);
+        return getMapper().toDtos(pros);
     }
 
     @Transactional
@@ -246,20 +225,23 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     }
 
     @Transactional
-    public ProDTO approveKyc(Long proId, Long approvedBy) {
+    public ProDTO approveKyc(Long proId, Long adminId) {
         Pro pro = findProById(proId);
 
         if (pro.getKycStatus() != KycStatus.PENDING) {
             throw new BadRequestException("Pro KYC is not pending. Current status: " + pro.getKycStatus());
         }
 
+        Admin admin = adminRepository.findById(adminId)
+                .orElseThrow(() -> new NotFoundException("Admin not found with id: " + adminId));
+
         pro.setKycStatus(KycStatus.APPROVED);
         pro.setApprovedAt(LocalDateTime.now());
-        pro.setApprovedBy(approvedBy);
+        pro.setApprovedByAdmin(admin);
         pro.setIsActive(true);
 
         Pro saved = proRepository.save(pro);
-        log.info("Approved KYC for pro {}", proId);
+        log.info("Approved KYC for pro {} by admin {}", proId, adminId);
 
         return getMapper().toDto(saved);
     }
@@ -277,6 +259,18 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         Pro saved = proRepository.save(pro);
         log.info("Rejected KYC for pro {} with reason: {}", proId, reason);
 
+        return getMapper().toDto(saved);
+    }
+
+    @Transactional
+    public ProDTO resetKyc(Long proId) {
+        Pro pro = findProById(proId);
+        pro.setKycStatus(KycStatus.PENDING);
+        pro.setApprovedAt(null);
+        pro.setApprovedByAdmin(null);
+        pro.setKycSubmittedAt(null);
+        Pro saved = proRepository.save(pro);
+        log.info("Reset KYC for pro {}", proId);
         return getMapper().toDto(saved);
     }
 
@@ -356,6 +350,54 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         pro.setOnline(false);
         proRepository.save(pro);
         log.info("Archived pro {}", id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProDTO> findArchived() {
+        List<Pro> archived = proRepository.findByArchivedTrue();
+        return getMapper().toDtos(archived);
+    }
+
+    @Transactional
+    public ProDTO restoreAccount(Long proId) {
+        Pro pro = findProById(proId);
+        pro.setArchived(false);
+        Pro saved = proRepository.save(pro);
+        log.info("Restored pro account {}", proId);
+        return getMapper().toDto(saved);
+    }
+
+    @Transactional
+    public ProDTO adminUpdate(Long proId, ProDTO dto) {
+        Pro pro = findProById(proId);
+
+        if (dto.getFirstName() != null)
+            pro.setFirstName(dto.getFirstName());
+        if (dto.getLastName() != null)
+            pro.setLastName(dto.getLastName());
+        if (dto.getEmail() != null)
+            pro.setEmail(dto.getEmail());
+        if (dto.getProfilePhoto() != null)
+            pro.setProfilePhoto(dto.getProfilePhoto());
+        if (dto.getIsActive() != null)
+            pro.setIsActive(dto.getIsActive());
+        if (dto.getOnline() != null)
+            pro.setOnline(dto.getOnline());
+
+        if (dto.getTrade() != null && dto.getTrade().getId() != null) {
+            Category trade = categoryRepository.findById(dto.getTrade().getId())
+                    .orElseThrow(() -> new NotFoundException("Trade not found with id: " + dto.getTrade().getId()));
+            pro.setTrade(trade);
+        }
+        if (dto.getBaseZone() != null && dto.getBaseZone().getId() != null) {
+            Zone zone = zoneRepository.findById(dto.getBaseZone().getId())
+                    .orElseThrow(() -> new NotFoundException("Zone not found with id: " + dto.getBaseZone().getId()));
+            pro.setBaseZone(zone);
+        }
+
+        Pro saved = proRepository.save(pro);
+        log.info("Admin updated pro {}", proId);
+        return getMapper().toDto(saved);
     }
 
     // ========================================================================

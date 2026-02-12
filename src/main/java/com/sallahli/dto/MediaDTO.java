@@ -3,15 +3,15 @@ package com.sallahli.dto;
 import com.sallahli.model.Enum.MediaEnum;
 import com.sallahli.utils.HasTimestampsDTO;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @EqualsAndHashCode(callSuper = false)
 public class MediaDTO extends HasTimestampsDTO {
     private Long id;
@@ -23,4 +23,3 @@ public class MediaDTO extends HasTimestampsDTO {
     private Long sizeBytes;
     private String mimeType;
 }
-
