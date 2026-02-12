@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @SuperBuilder
@@ -46,4 +47,6 @@ public class ProDTO extends UserDTO {
 
     private Boolean isActive;
     private Boolean archived;
+
+    private List<CategoryDTO> categories;
 }

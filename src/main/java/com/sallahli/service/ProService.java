@@ -20,8 +20,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.sallahli.dto.sallahli.CategoryDTO;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -420,6 +424,45 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     }
 
     // ========================================================================
+    // Categories Management
+    // ========================================================================
+
+    @Transactional
+    public ProDTO setCategories(Long proId, List<Long> categoryIds) {
+        Pro pro = findProById(proId);
+
+        Set<Category> categories = new HashSet<>();
+        for (Long categoryId : categoryIds) {
+            Category category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new NotFoundException("Category not found with id: " + categoryId));
+            categories.add(category);
+        }
+
+        pro.setCategories(categories);
+        Pro saved = proRepository.save(pro);
+        log.info("Pro {} updated their categories to {}", proId, categoryIds);
+        return getMapper().toDto(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CategoryDTO> getCategories(Long proId) {
+        Pro pro = findProById(proId);
+        return pro.getCategories().stream()
+                .map(category -> CategoryDTO.builder()
+                        .id(category.getId())
+                        .code(category.getCode())
+                        .name(category.getName())
+                        .description(category.getDescription())
+                        .leadType(category.getLeadType())
+                        .leadCost(category.getLeadCost())
+                        .matchLimit(category.getMatchLimit())
+                        .workflowType(category.getWorkflowType())
+                        .active(category.getActive())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    // ========================================================================
     // Statistics
     // ========================================================================
 
@@ -455,6 +498,19 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
             Zone zone = zoneRepository.findById(dto.getBaseZone().getId())
                     .orElseThrow(() -> new NotFoundException("Zone not found with id: " + dto.getBaseZone().getId()));
             entity.setBaseZone(zone);
+        }
+
+        // Resolve categories
+        if (dto.getCategories() != null && !dto.getCategories().isEmpty()) {
+            Set<Category> categories = new HashSet<>();
+            for (CategoryDTO catDto : dto.getCategories()) {
+                if (catDto.getId() != null) {
+                    Category cat = categoryRepository.findById(catDto.getId())
+                            .orElseThrow(() -> new NotFoundException("Category not found with id: " + catDto.getId()));
+                    categories.add(cat);
+                }
+            }
+            entity.setCategories(categories);
         }
     }
 
