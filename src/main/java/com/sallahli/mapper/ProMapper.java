@@ -14,7 +14,6 @@ public interface ProMapper extends Mapper<Pro, ProDTO> {
     @Mapping(target = "cniFrontMedia", source = "cniFrontMedia")
     @Mapping(target = "cniBackMedia", source = "cniBackMedia")
     @Mapping(target = "selfieMedia", source = "selfieMedia")
-    @Mapping(target = "categories", source = "categories")
     ProDTO toDto(Pro model);
 
     @Override
@@ -23,7 +22,6 @@ public interface ProMapper extends Mapper<Pro, ProDTO> {
     @Mapping(target = "cniFrontMedia", source = "cniFrontMedia")
     @Mapping(target = "cniBackMedia", source = "cniBackMedia")
     @Mapping(target = "selfieMedia", source = "selfieMedia")
-    @Mapping(target = "categories", source = "categories")
     Pro toModel(ProDTO dto);
 
     @Override

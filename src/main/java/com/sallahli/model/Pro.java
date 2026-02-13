@@ -93,10 +93,18 @@ public class Pro extends User implements Archivable {
     @Builder.Default
     private Boolean isActive = true;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "pro_category", joinColumns = @JoinColumn(name = "pro_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
     @Builder.Default
-    private Set<Category> categories = new HashSet<>();
+    private Boolean isTelVerified = false;
+
+    /*
+     * @ManyToMany(fetch = FetchType.LAZY)
+     * 
+     * @JoinTable(name = "pro_category", joinColumns = @JoinColumn(name = "pro_id"),
+     * inverseJoinColumns = @JoinColumn(name = "category_id"))
+     * 
+     * @Builder.Default
+     * private Set<Category> categories = new HashSet<>();
+     */
 
     @Builder.Default
     private Boolean archived = false;

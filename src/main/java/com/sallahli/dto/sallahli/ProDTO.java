@@ -46,7 +46,6 @@ public class ProDTO extends UserDTO {
     private Long lowBalanceThreshold;
 
     private Boolean isActive;
+    private Boolean isTelVerified;
     private Boolean archived;
-
-    private List<CategoryDTO> categories;
 }

@@ -71,7 +71,7 @@ public class ProAuthService {
         Optional<Pro> localExistingOpt = proRepository.findByUsername(proDTO.getUsername());
         if (localExistingOpt.isPresent()) {
             Pro localExisting = localExistingOpt.get();
-            if (Boolean.TRUE.equals(localExisting.getIsActive())) {
+            if (Boolean.TRUE.equals(localExisting.getIsTelVerified())) {
                 throw new ConflictAccountException("User already exists");
             }
 
@@ -221,6 +221,7 @@ public class ProAuthService {
         pro.setIsActive(false); // Inactive until KYC approved
         pro.setArchived(false);
         pro.setOnline(false);
+        pro.setIsTelVerified(false);
 
         // Set defaults for new pro
         if (pro.getKycStatus() == null) {
@@ -274,7 +275,8 @@ public class ProAuthService {
             Optional<Pro> proOpt = proRepository.findByUsername(userCode.getUsername());
             if (proOpt.isPresent()) {
                 Pro pro = proOpt.get();
-                pro.setIsActive(true);
+                // pro.setIsActive(true); // Don't activate until KYC is approved
+                pro.setIsTelVerified(true);
                 proRepository.save(pro);
             }
         }
@@ -390,6 +392,7 @@ public class ProAuthService {
         Pro pro = proRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("Pro not found with username: " + username));
         pro.setTel(tel);
+        pro.setIsTelVerified(false);
         proRepository.save(pro);
         return proMapper.toDto(pro);
     }

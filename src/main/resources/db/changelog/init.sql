@@ -703,3 +703,6 @@ ALTER TABLE payment
 
 --changeset mohamdi:init-sql/12
 ALTER TABLE pro ALTER COLUMN trade_id DROP NOT NULL;
+
+--changeset mohamdi:init-sql/13
+ALTER TABLE pro ADD COLUMN IF NOT EXISTS is_tel_verified BOOLEAN DEFAULT FALSE;
