@@ -104,7 +104,7 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         pro.setIsActive(false); // Default inactive until KYC
         pro.setArchived(false);
         pro.setOnline(false);
-        pro.setKycStatus(KycStatus.PENDING);
+        pro.setKycStatus(KycStatus.NOT_STARTED);
         pro.setIsTelVerified(false);
 
         // defaults
@@ -505,7 +505,7 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         // Set defaults for new pros
         if (isNew) {
             if (entity.getKycStatus() == null) {
-                entity.setKycStatus(KycStatus.PENDING);
+                entity.setKycStatus(KycStatus.NOT_STARTED);
             }
             if (entity.getOnline() == null) {
                 entity.setOnline(false);

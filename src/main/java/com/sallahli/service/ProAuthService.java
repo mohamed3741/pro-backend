@@ -225,7 +225,7 @@ public class ProAuthService {
 
         // Set defaults for new pro
         if (pro.getKycStatus() == null) {
-            pro.setKycStatus(com.sallahli.model.Enum.KycStatus.PENDING);
+            pro.setKycStatus(com.sallahli.model.Enum.KycStatus.NOT_STARTED);
         }
         if (pro.getWalletBalance() == null) {
             pro.setWalletBalance(0L);

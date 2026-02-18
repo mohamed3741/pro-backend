@@ -54,7 +54,7 @@ public class Pro extends User implements Archivable {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private KycStatus kycStatus = KycStatus.PENDING;
+    private KycStatus kycStatus = KycStatus.NOT_STARTED;
 
     private LocalDateTime kycSubmittedAt;
     private LocalDateTime approvedAt;
