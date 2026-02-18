@@ -89,7 +89,6 @@ public class ProController {
     // ========================================================================
 
     @GetMapping("/me")
-    @PreAuthorize("hasRole('PRO')")
     @Operation(summary = "Get my profile", description = "Returns the current pro's own profile")
     public ResponseEntity<ProDTO> getMyProfile(org.springframework.security.core.Authentication authentication) {
         String username = authentication.getName();
