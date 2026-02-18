@@ -47,7 +47,6 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
     // Lead Offer Creation
     // ========================================================================
 
-    
     @Transactional
     public List<LeadOfferDTO> createLeadOffersForRequest(CustomerRequest request) {
         Category category = request.getCategory();
@@ -56,7 +55,7 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
         Integer matchLimit = category.getMatchLimit();
 
         // Find available pros with sufficient wallet balance
-        List<Pro> availablePros = proRepository.findAvailableProsByTrade(category.getId(), leadCost);
+        List<Pro> availablePros = proRepository.findAvailableProsByCategory(category.getId(), leadCost);
 
         // Limit the number of offers based on category setting
         List<Pro> selectedPros = availablePros.stream()
@@ -87,7 +86,6 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
         return getMapper().toDtos(offers);
     }
 
-    
     @Transactional
     public LeadOfferDTO createOffer(Long requestId, Long proId) {
         CustomerRequest request = customerRequestRepository.findById(requestId)
@@ -123,7 +121,6 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
     // Lead Offer Actions
     // ========================================================================
 
-    
     @Transactional
     public LeadOfferDTO acceptOffer(Long offerId) {
         LeadOffer offer = findEntityById(offerId);
@@ -164,7 +161,6 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
         return getMapper().toDto(saved);
     }
 
-    
     @Transactional
     public LeadOfferDTO missOffer(Long offerId) {
         LeadOffer offer = findEntityById(offerId);
@@ -181,7 +177,6 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
         return getMapper().toDto(saved);
     }
 
-    
     @Transactional
     public LeadOfferDTO cancelOffer(Long offerId) {
         LeadOffer offer = findEntityById(offerId);
@@ -198,7 +193,6 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
         return getMapper().toDto(saved);
     }
 
-    
     @Transactional
     public void cancelOffersForRequest(Long requestId) {
         List<LeadOffer> offers = leadOfferRepository.findByRequestId(requestId);
@@ -213,7 +207,6 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
         log.info("Cancelled all pending offers for request {}", requestId);
     }
 
-    
     private void cancelOtherOffersForRequest(Long requestId, Long exceptOfferId) {
         List<LeadOffer> offers = leadOfferRepository.findByRequestId(requestId);
 
@@ -229,21 +222,18 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
     // Query Methods
     // ========================================================================
 
-    
     @Transactional(readOnly = true)
     public List<LeadOfferDTO> findByRequestId(Long requestId) {
         List<LeadOffer> offers = leadOfferRepository.findByRequestId(requestId);
         return getMapper().toDtos(offers);
     }
 
-    
     @Transactional(readOnly = true)
     public List<LeadOfferDTO> findPendingOffersByProId(Long proId) {
         List<LeadOffer> offers = leadOfferRepository.findByProIdAndStatus(proId, LeadOfferStatus.OFFERED);
         return getMapper().toDtos(offers);
     }
 
-    
     @Transactional(readOnly = true)
     public List<LeadOfferDTO> findAcceptedOffersByProId(Long proId) {
         List<LeadOffer> offers = leadOfferRepository.findByProIdAndStatus(proId, LeadOfferStatus.ACCEPTED);
@@ -254,7 +244,6 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
     // Expiration handling
     // ========================================================================
 
-    
     @Transactional
     public int expireOldOffers() {
         List<LeadOffer> expired = leadOfferRepository.findExpiredOffers(LocalDateTime.now());

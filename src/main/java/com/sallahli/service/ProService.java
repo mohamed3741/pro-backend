@@ -105,6 +105,7 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         pro.setArchived(false);
         pro.setOnline(false);
         pro.setKycStatus(KycStatus.NOT_STARTED);
+        pro.setCategories(new HashSet<>());
         pro.setIsTelVerified(false);
 
         // defaults
@@ -143,12 +144,13 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
             pro.setProfilePhoto(dto.getProfilePhoto());
         }
 
-        // Handle trade update (category)
-        if (dto.getTrade() != null && dto.getTrade().getId() != null) {
-            Category trade = categoryRepository.findById(dto.getTrade().getId())
-                    .orElseThrow(
-                            () -> new NotFoundException("Trade/Category not found with id: " + dto.getTrade().getId()));
-            pro.setTrade(trade);
+        // Handle categories update
+        if (dto.getCategories() != null) {
+            Set<Category> categories = dto.getCategories().stream()
+                    .map(catDto -> categoryRepository.findById(catDto.getId())
+                            .orElseThrow(() -> new NotFoundException("Category not found with id: " + catDto.getId())))
+                    .collect(Collectors.toSet());
+            pro.setCategories(categories);
         }
 
         // Handle base zone update
@@ -350,8 +352,8 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     }
 
     @Transactional(readOnly = true)
-    public List<ProDTO> findAvailableProsByTrade(Long tradeId, Long minBalance) {
-        List<Pro> pros = proRepository.findAvailableProsByTrade(tradeId, minBalance);
+    public List<ProDTO> findAvailableProsByCategory(Long categoryId, Long minBalance) {
+        List<Pro> pros = proRepository.findAvailableProsByCategory(categoryId, minBalance);
         return getMapper().toDtos(pros);
     }
 
@@ -421,10 +423,12 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         if (dto.getOnline() != null)
             pro.setOnline(dto.getOnline());
 
-        if (dto.getTrade() != null && dto.getTrade().getId() != null) {
-            Category trade = categoryRepository.findById(dto.getTrade().getId())
-                    .orElseThrow(() -> new NotFoundException("Trade not found with id: " + dto.getTrade().getId()));
-            pro.setTrade(trade);
+        if (dto.getCategories() != null) {
+            Set<Category> categories = dto.getCategories().stream()
+                    .map(catDto -> categoryRepository.findById(catDto.getId())
+                            .orElseThrow(() -> new NotFoundException("Category not found with id: " + catDto.getId())))
+                    .collect(Collectors.toSet());
+            pro.setCategories(categories);
         }
         if (dto.getBaseZone() != null && dto.getBaseZone().getId() != null) {
             Zone zone = zoneRepository.findById(dto.getBaseZone().getId())
@@ -483,12 +487,13 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
         if (dto == null)
             return;
 
-        // Resolve trade (category)
-        if (dto.getTrade() != null && dto.getTrade().getId() != null) {
-            Category trade = categoryRepository.findById(dto.getTrade().getId())
-                    .orElseThrow(
-                            () -> new NotFoundException("Trade/Category not found with id: " + dto.getTrade().getId()));
-            entity.setTrade(trade);
+        // Resolve categories
+        if (dto.getCategories() != null) {
+            Set<Category> categories = dto.getCategories().stream()
+                    .map(catDto -> categoryRepository.findById(catDto.getId())
+                            .orElseThrow(() -> new NotFoundException("Category not found with id: " + catDto.getId())))
+                    .collect(Collectors.toSet());
+            entity.setCategories(categories);
         }
 
         // Resolve base zone

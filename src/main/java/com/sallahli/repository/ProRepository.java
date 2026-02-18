@@ -21,7 +21,7 @@ public interface ProRepository extends GenericRepository<Pro> {
 
        List<Pro> findByOnlineTrue();
 
-       List<Pro> findByTradeIdAndOnlineTrue(Long tradeId);
+       List<Pro> findByCategoriesIdAndOnlineTrue(Long categoryId);
 
        List<Pro> findByKycStatus(KycStatus kycStatus);
 
@@ -31,10 +31,12 @@ public interface ProRepository extends GenericRepository<Pro> {
                      "AND p.walletBalance >= :minBalance ORDER BY p.ratingAvg DESC, p.ratingCount DESC")
        List<Pro> findAvailablePros(@Param("minBalance") Long minBalance);
 
-       @Query("SELECT p FROM Pro p WHERE p.online = true AND p.isActive = true AND p.kycStatus = 'APPROVED' " +
-                     "AND p.trade.id = :tradeId AND p.walletBalance >= :minBalance " +
+       @Query("SELECT p FROM Pro p JOIN p.categories c WHERE p.online = true AND p.isActive = true AND p.kycStatus = 'APPROVED' "
+                     +
+                     "AND c.id = :categoryId AND p.walletBalance >= :minBalance " +
                      "ORDER BY p.ratingAvg DESC, p.ratingCount DESC")
-       List<Pro> findAvailableProsByTrade(@Param("tradeId") Long tradeId, @Param("minBalance") Long minBalance);
+       List<Pro> findAvailableProsByCategory(@Param("categoryId") Long categoryId,
+                     @Param("minBalance") Long minBalance);
 
        @Query("SELECT p FROM Pro p WHERE LOWER(p.firstName) LIKE LOWER(CONCAT('%', :query, '%')) " +
                      "OR LOWER(p.lastName) LIKE LOWER(CONCAT('%', :query, '%')) " +

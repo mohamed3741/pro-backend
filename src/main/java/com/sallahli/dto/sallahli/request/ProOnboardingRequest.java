@@ -17,9 +17,7 @@ public class ProOnboardingRequest {
     private Long tradeId;
     private Long baseZoneId;
 
-
     private Long cniFrontMediaId;
     private Long cniBackMediaId;
     private Long selfieMediaId;
 }
-

@@ -115,7 +115,7 @@ public class DataSeeder implements CommandLineRunner {
                 .lastName(faker.name().lastName())
                 .fullName(faker.name().fullName())
                 .email(faker.internet().emailAddress())
-                .trade(trade)
+                .categories(java.util.Set.of(trade))
                 .baseZone(zone)
                 .kycStatus(KycStatus.APPROVED)
                 .approvedAt(LocalDateTime.now())

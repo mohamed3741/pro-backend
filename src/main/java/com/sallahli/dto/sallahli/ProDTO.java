@@ -10,7 +10,9 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import lombok.Builder;
 
 @Data
 @SuperBuilder
@@ -21,7 +23,8 @@ public class ProDTO extends UserDTO {
 
     private String fullName;
     private String profilePhoto;
-    private CategoryDTO trade;
+    @Builder.Default
+    private List<CategoryDTO> categories = new ArrayList<>();
     private ZoneDTO baseZone;
 
     private MediaDTO cniFrontMedia;

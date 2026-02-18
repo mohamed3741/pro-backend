@@ -279,14 +279,14 @@ public class ProController {
         return ResponseEntity.ok(proService.findAvailablePros(minBalance));
     }
 
-    @GetMapping("/available/by-trade/{tradeId}")
+    @GetMapping("/available/by-category/{categoryId}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Get available pros by trade", description = "Returns available pros for a specific trade/category")
-    public ResponseEntity<List<ProDTO>> findAvailableProsByTrade(
-            @PathVariable Long tradeId,
+    @Operation(summary = "Get available pros by category", description = "Returns available pros for a specific trade/category")
+    public ResponseEntity<List<ProDTO>> findAvailableProsByCategory(
+            @PathVariable Long categoryId,
             @RequestParam(defaultValue = "0") Long minBalance) {
-        log.debug("REST request to get available pros for trade {} with min balance {}", tradeId, minBalance);
-        return ResponseEntity.ok(proService.findAvailableProsByTrade(tradeId, minBalance));
+        log.debug("REST request to get available pros for category {} with min balance {}", categoryId, minBalance);
+        return ResponseEntity.ok(proService.findAvailableProsByCategory(categoryId, minBalance));
     }
 
     // ========================================================================

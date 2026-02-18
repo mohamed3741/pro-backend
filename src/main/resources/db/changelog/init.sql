@@ -706,3 +706,14 @@ ALTER TABLE pro ALTER COLUMN trade_id DROP NOT NULL;
 
 --changeset mohamdi:init-sql/13
 ALTER TABLE pro ADD COLUMN IF NOT EXISTS is_tel_verified BOOLEAN DEFAULT FALSE;
+
+--changeset mohamdi:init-sql/14
+CREATE TABLE IF NOT EXISTS pro_category (
+                                            pro_id BIGINT NOT NULL,
+                                            category_id BIGINT NOT NULL,
+                                            PRIMARY KEY (pro_id, category_id),
+    CONSTRAINT fk_pro_category_pro FOREIGN KEY (pro_id) REFERENCES pro(id) ON DELETE CASCADE,
+    CONSTRAINT fk_pro_category_category FOREIGN KEY (category_id) REFERENCES category(id) ON DELETE CASCADE
+    );
+
+ALTER TABLE pro DROP COLUMN IF EXISTS trade_id;

@@ -9,7 +9,7 @@ import org.mapstruct.Mapping;
 public interface ProMapper extends Mapper<Pro, ProDTO> {
 
     @Override
-    @Mapping(target = "trade", source = "trade")
+
     @Mapping(target = "baseZone", source = "baseZone")
     @Mapping(target = "cniFrontMedia", source = "cniFrontMedia")
     @Mapping(target = "cniBackMedia", source = "cniBackMedia")
@@ -17,7 +17,7 @@ public interface ProMapper extends Mapper<Pro, ProDTO> {
     ProDTO toDto(Pro model);
 
     @Override
-    @Mapping(target = "trade", source = "trade")
+
     @Mapping(target = "baseZone", source = "baseZone")
     @Mapping(target = "cniFrontMedia", source = "cniFrontMedia")
     @Mapping(target = "cniBackMedia", source = "cniBackMedia")

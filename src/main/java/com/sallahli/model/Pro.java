@@ -26,9 +26,17 @@ public class Pro extends User implements Archivable {
     private String fullName;
     private String profilePhoto;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trade_id")
-    private Category trade;
+    /*
+     * @ManyToOne(fetch = FetchType.LAZY)
+     * 
+     * @JoinColumn(name = "trade_id")
+     * private Category trade;
+     */
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "pro_category", joinColumns = @JoinColumn(name = "pro_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
+    @Builder.Default
+    private Set<Category> categories = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "base_zone_id")
