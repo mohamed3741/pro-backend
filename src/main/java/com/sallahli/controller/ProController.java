@@ -104,7 +104,7 @@ public class ProController {
         return ResponseEntity.ok(pro);
     }
 
-    @PutMapping("/me/profile")
+    @PutMapping("/profile/update")
     @PreAuthorize("hasRole('PRO')")
     @Operation(summary = "Update my profile", description = "Pro updates their own profile information")
     public ResponseEntity<ProDTO> updateMyProfile(
@@ -114,7 +114,7 @@ public class ProController {
         return ResponseEntity.ok(proService.updateProfile(proId, dto));
     }
 
-    @PostMapping("/me/kyc/submit")
+    @PostMapping("/kyc/submit")
     @PreAuthorize("hasRole('PRO')")
     @Operation(summary = "Submit KYC documents", description = "Pro submits their identity documents for verification")
     @ApiResponses({
@@ -132,7 +132,7 @@ public class ProController {
                 proService.submitKycDocuments(proId, cniFrontMediaId, cniBackMediaId, selfieMediaId, tradeDocMediaId));
     }
 
-    @GetMapping("/me/kyc/status")
+    @GetMapping("/kyc/status")
     @PreAuthorize("hasRole('PRO')")
     @Operation(summary = "Get my KYC status", description = "Returns the current pro's KYC status")
     public ResponseEntity<KycStatus> getMyKycStatus(@RequestParam Long proId) {
@@ -140,7 +140,7 @@ public class ProController {
         return ResponseEntity.ok(proService.getMyKycStatus(proId));
     }
 
-    @PutMapping("/me/categories")
+    @PutMapping("/categories/update")
     @PreAuthorize("hasRole('PRO')")
     @Operation(summary = "Update pro categories", description = "Pro updates their categories")
     public ResponseEntity<ProDTO> updateCategories(
@@ -150,7 +150,7 @@ public class ProController {
         return ResponseEntity.ok(proService.updateProCategories(authentication, categorySelectionDTO));
     }
 
-    @PostMapping("/me/go-online")
+    @PostMapping("/go-online")
     @PreAuthorize("hasRole('PRO')")
     @Operation(summary = "Go online", description = "Pro starts accepting leads")
     public ResponseEntity<ProDTO> goOnline(@RequestParam Long proId) {
@@ -158,7 +158,7 @@ public class ProController {
         return ResponseEntity.ok(proService.goOnline(proId));
     }
 
-    @PostMapping("/me/go-offline")
+    @PostMapping("/go-offline")
     @PreAuthorize("hasRole('PRO')")
     @Operation(summary = "Go offline", description = "Pro stops accepting leads")
     public ResponseEntity<ProDTO> goOffline(@RequestParam Long proId) {
@@ -166,7 +166,7 @@ public class ProController {
         return ResponseEntity.ok(proService.goOffline(proId));
     }
 
-    @PutMapping("/me/location")
+    @PutMapping("/location/update")
     @PreAuthorize("hasRole('PRO')")
     @Operation(summary = "Update location", description = "Pro updates their current location")
     public ResponseEntity<ProDTO> updateLocation(
@@ -177,7 +177,7 @@ public class ProController {
         return ResponseEntity.ok(proService.updateLocation(proId, latitude, longitude));
     }
 
-    @PutMapping("/me/low-balance-threshold")
+    @PutMapping("/low-balance-threshold")
     @PreAuthorize("hasRole('PRO')")
     @Operation(summary = "Update my low balance threshold", description = "Pro sets their low balance notification threshold")
     public ResponseEntity<ProDTO> updateMyLowBalanceThreshold(
@@ -263,7 +263,7 @@ public class ProController {
     // Online/Availability Status
     // ========================================================================
 
-    @PostMapping("/{id}/online")
+    @PutMapping("/{id}/availability/update")
     @PreAuthorize("hasAnyRole('PRO', 'ADMIN')")
     @Operation(summary = "Set online status", description = "Sets professional's online/offline status")
     public ResponseEntity<ProDTO> setOnlineStatus(
@@ -320,7 +320,7 @@ public class ProController {
         return ResponseEntity.ok(proService.deactivateAccount(id));
     }
 
-    @PutMapping("/{id}/low-balance-threshold")
+    @PutMapping("/{id}/balance/threshold/update")
     @PreAuthorize("hasAnyRole('PRO', 'ADMIN')")
     @Operation(summary = "Update low balance threshold", description = "Sets the low balance notification threshold")
     public ResponseEntity<ProDTO> updateLowBalanceThreshold(

@@ -67,7 +67,7 @@ public class AddressController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id}/update")
     @PreAuthorize("hasAnyRole('CLIENT', 'PRO', 'ADMIN')")
     @Operation(summary = "Update an address", description = "Updates an existing address")
     @ApiResponses({

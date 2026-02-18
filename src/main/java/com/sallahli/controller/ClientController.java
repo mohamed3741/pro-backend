@@ -57,7 +57,7 @@ public class ClientController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id}/update")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN')")
     @Operation(summary = "Update a client", description = "Updates client profile")
     public ResponseEntity<ClientDTO> update(@PathVariable Long id, @RequestBody ClientDTO dto) {
@@ -105,7 +105,7 @@ public class ClientController {
         return client;
     }
 
-    @PutMapping("/me/profile")
+    @PutMapping("/me/profile/update")
     @PreAuthorize("hasRole('CLIENT')")
     @Operation(summary = "Update my profile", description = "Client updates their own profile information")
     public ResponseEntity<ClientDTO> updateMyProfile(
