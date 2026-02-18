@@ -52,6 +52,22 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.updateWorkflowType(id, workflowType));
     }
 
+    @PostMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Operation(summary = "Create a new category")
+    public ResponseEntity<CategoryDTO> create(@RequestBody CategoryDTO categoryDTO) {
+        CategoryDTO created = categoryService.create(categoryDTO);
+        return ResponseEntity.ok(created);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Operation(summary = "Update an existing category")
+    public ResponseEntity<CategoryDTO> update(@PathVariable Long id, @RequestBody CategoryDTO categoryDTO) {
+        CategoryDTO updated = categoryService.update(id, categoryDTO);
+        return ResponseEntity.ok(updated);
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     @Operation(summary = "Delete category")
