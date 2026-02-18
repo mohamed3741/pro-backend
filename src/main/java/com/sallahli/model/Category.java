@@ -28,8 +28,14 @@ public class Category extends HasTimestamps implements Archivable {
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "name_ar")
+    private String nameAr;
+
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column(name = "description_ar", columnDefinition = "TEXT")
+    private String descriptionAr;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_media_id")
@@ -48,7 +54,6 @@ public class Category extends HasTimestamps implements Archivable {
     @Builder.Default
     private Integer matchLimit = 3;
 
-    
     @Enumerated(EnumType.STRING)
     @Column(name = "workflow_type", nullable = false)
     @Builder.Default

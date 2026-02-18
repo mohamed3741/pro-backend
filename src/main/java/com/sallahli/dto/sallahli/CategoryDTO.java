@@ -19,7 +19,9 @@ public class CategoryDTO {
     private Long id;
     private String code;
     private String name;
+    private String nameAr;
     private String description;
+    private String descriptionAr;
     private MediaDTO iconMedia;
     private LeadType leadType;
     private BigDecimal leadCost;

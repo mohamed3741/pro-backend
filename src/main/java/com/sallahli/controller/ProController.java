@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -137,6 +138,16 @@ public class ProController {
     public ResponseEntity<KycStatus> getMyKycStatus(@RequestParam Long proId) {
         log.debug("REST request to get KYC status for pro {}", proId);
         return ResponseEntity.ok(proService.getMyKycStatus(proId));
+    }
+
+    @PutMapping("/me/categories")
+    @PreAuthorize("hasRole('PRO')")
+    @Operation(summary = "Update pro categories", description = "Pro updates their categories")
+    public ResponseEntity<ProDTO> updateCategories(
+            Authentication authentication,
+            @RequestBody com.sallahli.dto.sallahli.ProCategorySelectionDTO categorySelectionDTO) {
+        log.debug("REST request to update categories for pro: {}", authentication.getName());
+        return ResponseEntity.ok(proService.updateProCategories(authentication, categorySelectionDTO));
     }
 
     @PostMapping("/me/go-online")

@@ -717,3 +717,7 @@ CREATE TABLE IF NOT EXISTS pro_category (
     );
 
 ALTER TABLE pro DROP COLUMN IF EXISTS trade_id;
+
+--changeset mohamdi:init-sql/15
+ALTER TABLE category ADD COLUMN IF NOT EXISTS name_ar VARCHAR(255);
+ALTER TABLE category ADD COLUMN IF NOT EXISTS description_ar TEXT;

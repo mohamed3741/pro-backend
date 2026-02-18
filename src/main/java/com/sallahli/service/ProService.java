@@ -166,6 +166,36 @@ public class ProService extends AbstractCrudService<Pro, ProDTO> {
     }
 
     @Transactional
+    public ProDTO updateProCategories(org.springframework.security.core.Authentication authentication,
+            com.sallahli.dto.sallahli.ProCategorySelectionDTO categorySelectionDTO) {
+        String username = authentication.getName();
+        Pro pro = proRepository.findByTel(username)
+                .orElseThrow(() -> new NotFoundException("Pro not found with username: " + username));
+
+        if (categorySelectionDTO.getCategoryIds() == null || categorySelectionDTO.getCategoryIds().isEmpty()) {
+            throw new BadRequestException("Category list cannot be empty");
+        }
+
+        List<Category> categories = categoryRepository.findAllById(categorySelectionDTO.getCategoryIds());
+
+        if (categories.size() != categorySelectionDTO.getCategoryIds().size()) {
+            throw new NotFoundException("One or more categories not found");
+        }
+
+        boolean hasInactiveOrArchived = categories.stream()
+                .anyMatch(cat -> !cat.getActive() || (cat.getArchived() != null && cat.getArchived()));
+
+        if (hasInactiveOrArchived) {
+            throw new BadRequestException("Cannot select inactive or archived categories");
+        }
+
+        pro.setCategories(new HashSet<>(categories));
+        Pro saved = proRepository.save(pro);
+
+        return getMapper().toDto(saved);
+    }
+
+    @Transactional
     public ProDTO submitKycDocuments(Long proId, Long cniFrontMediaId, Long cniBackMediaId, Long selfieMediaId,
             Long tradeDocMediaId) {
         Pro pro = findProById(proId);
