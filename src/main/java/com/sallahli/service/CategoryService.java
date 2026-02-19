@@ -1,19 +1,25 @@
 package com.sallahli.service;
 
+import com.sallahli.dto.MediaDTO;
 import com.sallahli.dto.sallahli.CategoryDTO;
 import com.sallahli.exceptions.NotFoundException;
 import com.sallahli.mapper.CategoryMapper;
+import com.sallahli.mapper.MediaMapper;
 import com.sallahli.model.Category;
+import com.sallahli.model.Enum.MediaEnum;
 import com.sallahli.model.Enum.WorkflowType;
 import com.sallahli.model.Media;
 import com.sallahli.repository.CategoryRepository;
 import com.sallahli.repository.MediaRepository;
 import com.sallahli.service.crud.AbstractCrudService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -24,13 +30,17 @@ public class CategoryService extends AbstractCrudService<Category, CategoryDTO> 
     private final CategoryRepository categoryRepository;
     private final MediaRepository mediaRepository;
     private final CategoryMapper categoryMapper;
+    private final MediaService mediaService;
+    private final MediaMapper mediaMapper;
 
     public CategoryService(CategoryRepository categoryRepository, CategoryMapper categoryMapper,
-            MediaRepository mediaRepository) {
+            MediaRepository mediaRepository, MediaService mediaService, MediaMapper mediaMapper) {
         super(categoryRepository, categoryMapper);
         this.categoryRepository = categoryRepository;
         this.categoryMapper = categoryMapper;
         this.mediaRepository = mediaRepository;
+        this.mediaService = mediaService;
+        this.mediaMapper = mediaMapper;
     }
 
     // ========================================================================
@@ -190,5 +200,43 @@ public class CategoryService extends AbstractCrudService<Category, CategoryDTO> 
         if (!StringUtils.hasText(code))
             return null;
         return code.trim().toUpperCase();
+    }
+
+    // ========================================================================
+    // Icon Management
+    // ========================================================================
+
+    @Transactional
+    public ResponseEntity<String> updateCategoryIcon(Long categoryId, MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return ResponseEntity.badRequest().body("File cannot be null or empty.");
+        }
+
+        try {
+            byte[] fileBytes = file.getBytes();
+            if (fileBytes.length == 0) {
+                return ResponseEntity.badRequest().body("File data cannot be empty.");
+            }
+
+            Category category = categoryRepository.findByIdAndArchivedFalse(categoryId)
+                    .orElseThrow(() -> new NotFoundException("Category not found with id: " + categoryId));
+
+            Long mediaId = (category.getIconMedia() != null && category.getIconMedia().getId() != null)
+                    ? category.getIconMedia().getId()
+                    : null;
+
+            MediaDTO iconMedia = mediaService.createDto(fileBytes, MediaEnum.CATEGORY, mediaId);
+            Media media = mediaMapper.toModel(iconMedia);
+
+            category.setIconMedia(media);
+            categoryRepository.save(category);
+
+            log.info("Updated icon for category {}", categoryId);
+            return ResponseEntity.ok("Category icon updated successfully.");
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body("Error reading file: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error updating category icon: " + e.getMessage());
+        }
     }
 }

@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -74,5 +75,13 @@ public class CategoryController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         categoryService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/icon")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Operation(summary = "Update category icon", description = "Upload or update the icon image for a category")
+    public ResponseEntity<String> updateCategoryIcon(@PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
+        return categoryService.updateCategoryIcon(id, file);
     }
 }
