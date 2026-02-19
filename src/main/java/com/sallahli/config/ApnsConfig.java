@@ -3,74 +3,62 @@ package com.sallahli.config;
 import com.eatthepath.pushy.apns.ApnsClient;
 import com.eatthepath.pushy.apns.ApnsClientBuilder;
 import com.eatthepath.pushy.apns.auth.ApnsSigningKey;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-
+import java.util.Base64;
 
 @Configuration
 @Slf4j
 public class ApnsConfig {
 
-    // ========================================================================
-    // Client App Configuration (iOS)
-    // ========================================================================
+    @Value("${apns.team-id:}")
+    private String teamId;
 
-    @Value("${apns.client.enabled:true}")
-    private boolean clientApnsEnabled;
+    @Value("${apns.key-id:}")
+    private String keyId;
 
-    @Value("${apns.client.key-file:apns-client-key.p8}")
-    private String clientKeyFile;
+    @Value("${apns.p8-file-base64:}")
+    private String p8FileBase64;
 
-    @Value("${apns.client.key-id:XXXXXXXXXX}")
-    private String clientKeyId;
+    @Getter
+    @Value("${apns.client-bundle:com.sallahli.client.stg}")
+    private String clientBundle;
 
-    @Value("${apns.client.team-id:XXXXXXXXXX}")
-    private String clientTeamId;
-
-    @Value("${apns.client.bundle-id:com.sallahli.client}")
-    private String clientBundleId;
-
-    // ========================================================================
-    // Pro App Configuration (iOS)
-    // ========================================================================
-
-    @Value("${apns.pro.enabled:true}")
-    private boolean proApnsEnabled;
-
-    @Value("${apns.pro.key-file:apns-pro-key.p8}")
-    private String proKeyFile;
-
-    @Value("${apns.pro.key-id:YYYYYYYYYY}")
-    private String proKeyId;
-
-    @Value("${apns.pro.team-id:YYYYYYYYYY}")
-    private String proTeamId;
-
-    @Value("${apns.pro.bundle-id:com.sallahli.pro}")
-    private String proBundleId;
-
-    // ========================================================================
-    // Common Configuration
-    // ========================================================================
+    @Getter
+    @Value("${apns.pro-bundle:com.sallahli.pro.stg}")
+    private String proBundle;
 
     @Value("${apns.production:false}")
     private boolean production;
 
-    @Bean(name = "clientApnsClient")
-    public ApnsClient clientApnsClient() {
-        if (!clientApnsEnabled) {
-            log.info("Client APNs is disabled. Returning null.");
+    private boolean isConfigured() {
+        return p8FileBase64 != null && !p8FileBase64.isBlank()
+                && teamId != null && !teamId.isBlank()
+                && keyId != null && !keyId.isBlank();
+    }
+
+    private ApnsClient buildApnsClient(String label) {
+        if (!isConfigured()) {
+            log.info("APNs {} is not configured (missing p8-file-base64, team-id, or key-id). Returning null.", label);
             return null;
         }
 
         try {
+            byte[] p8Bytes = Base64.getDecoder().decode(p8FileBase64);
+
+            ApnsSigningKey signingKey = ApnsSigningKey.loadFromInputStream(
+                    new ByteArrayInputStream(p8Bytes),
+                    teamId,
+                    keyId);
+
             ApnsClientBuilder builder = new ApnsClientBuilder();
 
             if (production) {
@@ -79,64 +67,37 @@ public class ApnsConfig {
                 builder.setApnsServer(ApnsClientBuilder.DEVELOPMENT_APNS_HOST);
             }
 
-            ApnsSigningKey signingKey = ApnsSigningKey.loadFromInputStream(
-                    new ClassPathResource(clientKeyFile).getInputStream(),
-                    clientTeamId,
-                    clientKeyId);
-
             ApnsClient client = builder
                     .setSigningKey(signingKey)
                     .build();
 
-            log.info("Client APNs client initialized for bundle: {} (production: {})", clientBundleId, production);
+            log.info("APNs {} client initialized (production: {})", label, production);
             return client;
 
         } catch (IOException | NoSuchAlgorithmException | InvalidKeyException e) {
-            log.error("Failed to initialize Client APNs client: {}", e.getMessage());
+            log.error("Failed to initialize APNs {} client: {}", label, e.getMessage());
+            return null;
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid base64 for APNs p8 key: {}", e.getMessage());
             return null;
         }
+    }
+
+    @Bean(name = "clientApnsClient")
+    public ApnsClient clientApnsClient() {
+        ApnsClient client = buildApnsClient("client");
+        if (client != null) {
+            log.info("APNs client initialized for bundle: {}", clientBundle);
+        }
+        return client;
     }
 
     @Bean(name = "proApnsClient")
     public ApnsClient proApnsClient() {
-        if (!proApnsEnabled) {
-            log.info("Pro APNs is disabled. Returning null.");
-            return null;
+        ApnsClient client = buildApnsClient("pro");
+        if (client != null) {
+            log.info("APNs client initialized for bundle: {}", proBundle);
         }
-
-        try {
-            ApnsClientBuilder builder = new ApnsClientBuilder();
-
-            if (production) {
-                builder.setApnsServer(ApnsClientBuilder.PRODUCTION_APNS_HOST);
-            } else {
-                builder.setApnsServer(ApnsClientBuilder.DEVELOPMENT_APNS_HOST);
-            }
-
-            ApnsSigningKey signingKey = ApnsSigningKey.loadFromInputStream(
-                    new ClassPathResource(proKeyFile).getInputStream(),
-                    proTeamId,
-                    proKeyId);
-
-            ApnsClient client = builder
-                    .setSigningKey(signingKey)
-                    .build();
-
-            log.info("Pro APNs client initialized for bundle: {} (production: {})", proBundleId, production);
-            return client;
-
-        } catch (IOException | NoSuchAlgorithmException | InvalidKeyException e) {
-            log.error("Failed to initialize Pro APNs client: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    // Getters for bundle IDs (used by PushNotificationService)
-    public String getClientBundleId() {
-        return clientBundleId;
-    }
-
-    public String getProBundleId() {
-        return proBundleId;
+        return client;
     }
 }

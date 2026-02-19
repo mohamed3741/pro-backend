@@ -8,56 +8,52 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-
+import java.util.Base64;
 
 @Configuration
 @Slf4j
 public class FirebaseConfig {
 
-    @Value("${firebase.credentials-file:firebase-service-account.json}")
-    private String credentialsFile;
-
-    @Value("${firebase.project-id:sallahli-app}")
-    private String projectId;
-
-    @Value("${firebase.enabled:true}")
-    private boolean firebaseEnabled;
+    @Value("${fcm.firebase-configuration-content-base64:}")
+    private String firebaseConfigBase64;
 
     @PostConstruct
     public void initialize() {
-        if (!firebaseEnabled) {
-            log.info("Firebase is disabled. Skipping initialization.");
+        if (firebaseConfigBase64 == null || firebaseConfigBase64.isBlank()) {
+            log.info("Firebase config base64 is empty. Skipping Firebase initialization.");
             return;
         }
 
         try {
             if (FirebaseApp.getApps().isEmpty()) {
-                InputStream serviceAccount = new ClassPathResource(credentialsFile).getInputStream();
+                byte[] configBytes = Base64.getDecoder().decode(firebaseConfigBase64);
+                ByteArrayInputStream serviceAccount = new ByteArrayInputStream(configBytes);
+
+                GoogleCredentials credentials = GoogleCredentials.fromStream(serviceAccount);
 
                 FirebaseOptions options = FirebaseOptions.builder()
-                        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                        .setProjectId(projectId)
+                        .setCredentials(credentials)
                         .build();
 
                 FirebaseApp.initializeApp(options);
-                log.info("Firebase application initialized successfully for project: {}", projectId);
+                log.info("Firebase application initialized successfully from base64 config.");
             } else {
-                log.info("Firebase application already initialized");
+                log.info("Firebase application already initialized.");
             }
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid base64 for Firebase config: {}. Push notifications will not work.", e.getMessage());
         } catch (IOException e) {
             log.error("Failed to initialize Firebase: {}. Push notifications will not work.", e.getMessage());
-            // Don't throw - allow app to start without Firebase
         }
     }
 
     @Bean
     public FirebaseMessaging firebaseMessaging() {
-        if (!firebaseEnabled || FirebaseApp.getApps().isEmpty()) {
+        if (FirebaseApp.getApps().isEmpty()) {
             log.warn("Firebase not initialized. Returning null FirebaseMessaging bean.");
             return null;
         }

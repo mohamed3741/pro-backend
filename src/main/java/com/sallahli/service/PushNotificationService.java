@@ -5,7 +5,6 @@ import com.eatthepath.pushy.apns.PushNotificationResponse;
 import com.eatthepath.pushy.apns.util.SimpleApnsPushNotification;
 import com.google.firebase.messaging.*;
 import com.sallahli.config.ApnsConfig;
-import com.sallahli.config.WebPushConfig;
 import com.sallahli.model.Enum.OsType;
 import com.sallahli.model.Enum.ProfileType;
 import com.sallahli.model.Notification;
@@ -16,12 +15,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-
 
 @Service
 @Slf4j
@@ -33,7 +30,6 @@ public class PushNotificationService {
     private final ApnsClient clientApnsClient;
     private final ApnsClient proApnsClient;
     private final ApnsConfig apnsConfig;
-    private final WebPushConfig webPushConfig;
 
     public PushNotificationService(
             UserDeviceRepository userDeviceRepository,
@@ -41,22 +37,19 @@ public class PushNotificationService {
             @org.springframework.beans.factory.annotation.Autowired(required = false) FirebaseMessaging firebaseMessaging,
             @Qualifier("clientApnsClient") @org.springframework.beans.factory.annotation.Autowired(required = false) ApnsClient clientApnsClient,
             @Qualifier("proApnsClient") @org.springframework.beans.factory.annotation.Autowired(required = false) ApnsClient proApnsClient,
-            ApnsConfig apnsConfig,
-            WebPushConfig webPushConfig) {
+            ApnsConfig apnsConfig) {
         this.userDeviceRepository = userDeviceRepository;
         this.userDeviceService = userDeviceService;
         this.firebaseMessaging = firebaseMessaging;
         this.clientApnsClient = clientApnsClient;
         this.proApnsClient = proApnsClient;
         this.apnsConfig = apnsConfig;
-        this.webPushConfig = webPushConfig;
     }
 
     // ========================================================================
     // High-Level Send Methods
     // ========================================================================
 
-    
     public void sendToPro(Long proId, Notification notification) {
         List<UserDevice> devices = userDeviceRepository.findByProId(proId);
 
@@ -70,7 +63,6 @@ public class PushNotificationService {
         }
     }
 
-    
     public void sendToClient(Long clientId, Notification notification) {
         List<UserDevice> devices = userDeviceRepository.findByClientId(clientId);
 
@@ -84,7 +76,6 @@ public class PushNotificationService {
         }
     }
 
-    
     public void sendToAllByProfileType(ProfileType profileType, Notification notification) {
         List<UserDevice> devices = userDeviceRepository.findByProfileType(profileType);
         log.info("Sending notification to {} {} devices", devices.size(), profileType);
@@ -94,7 +85,6 @@ public class PushNotificationService {
         }
     }
 
-    
     public void sendToToken(String token, Notification notification, ProfileType profileType) {
         userDeviceRepository.findByToken(token).ifPresent(device -> sendToDevice(device, notification, profileType));
     }
@@ -132,8 +122,8 @@ public class PushNotificationService {
     private void sendApnsNotification(UserDevice device, Notification notification, ProfileType profileType) {
         ApnsClient apnsClient = profileType == ProfileType.PRO ? proApnsClient : clientApnsClient;
         String bundleId = profileType == ProfileType.PRO
-                ? apnsConfig.getProBundleId()
-                : apnsConfig.getClientBundleId();
+                ? apnsConfig.getProBundle()
+                : apnsConfig.getClientBundle();
 
         if (apnsClient == null) {
             log.warn("APNs client not configured for profile type: {}", profileType);
@@ -263,11 +253,6 @@ public class PushNotificationService {
     // ========================================================================
 
     private void sendWebPushNotification(UserDevice device, Notification notification) {
-        if (!webPushConfig.isEnabled()) {
-            log.warn("Web Push is disabled. Cannot send web notification.");
-            return;
-        }
-
         // For web push, we use FCM with web configuration
         if (firebaseMessaging == null) {
             log.warn("Firebase Messaging not configured for web push.");
@@ -322,7 +307,6 @@ public class PushNotificationService {
     // Topic-Based Notifications (for broadcasts)
     // ========================================================================
 
-    
     public void sendToTopic(String topic, Notification notification) {
         if (firebaseMessaging == null) {
             log.warn("Firebase Messaging not configured. Cannot send topic notification.");
@@ -347,7 +331,6 @@ public class PushNotificationService {
         }
     }
 
-    
     public void subscribeToTopic(String token, String topic) {
         if (firebaseMessaging == null) {
             return;
@@ -361,7 +344,6 @@ public class PushNotificationService {
         }
     }
 
-    
     public void unsubscribeFromTopic(String token, String topic) {
         if (firebaseMessaging == null) {
             return;
