@@ -16,8 +16,6 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final PushNotificationService pushNotificationService;
 
-
-
     @Transactional
     public void sendLeadAcceptedNotification(Pro pro, LeadOffer leadOffer) {
         Notification notification = createNotification(
@@ -25,8 +23,7 @@ public class NotificationService {
                 "Lead Accepted",
                 "You have successfully accepted a lead",
                 leadOffer.getId(),
-                "LEAD_OFFER"
-        );
+                "LEAD_OFFER");
 
         pushNotificationService.sendToPro(pro.getId(), notification);
     }
@@ -38,8 +35,19 @@ public class NotificationService {
                 "Request Assigned",
                 "A professional has been assigned to your request",
                 leadOffer.getRequest().getId(),
-                "CUSTOMER_REQUEST"
-        );
+                "CUSTOMER_REQUEST");
+
+        pushNotificationService.sendToClient(client.getId(), notification);
+    }
+
+    @Transactional
+    public void sendRequestCreatedNotification(Client client, CustomerRequest request) {
+        Notification notification = createNotification(
+                NotificationType.CLIENT_REQUEST_CREATED,
+                "Request Created",
+                "Your request has been successfully created. We will notify you once a professional is assigned.",
+                request.getId(),
+                "CUSTOMER_REQUEST");
 
         pushNotificationService.sendToClient(client.getId(), notification);
     }
@@ -51,8 +59,7 @@ public class NotificationService {
                 "Lead Expired",
                 "The lead offer has expired",
                 offer.getId(),
-                "LEAD_OFFER"
-        );
+                "LEAD_OFFER");
 
         pushNotificationService.sendToPro(pro.getId(), notification);
     }
@@ -64,8 +71,7 @@ public class NotificationService {
                 "Wallet Recharged",
                 String.format("Your wallet has been recharged with %d MRU", amount),
                 pro.getId(),
-                "PRO"
-        );
+                "PRO");
 
         pushNotificationService.sendToPro(pro.getId(), notification);
     }
@@ -77,8 +83,7 @@ public class NotificationService {
                 "Low Balance Alert",
                 "Your wallet balance is low. Please recharge to continue receiving leads",
                 pro.getId(),
-                "PRO"
-        );
+                "PRO");
 
         pushNotificationService.sendToPro(pro.getId(), notification);
     }
@@ -90,8 +95,7 @@ public class NotificationService {
                 "Job Started",
                 "The professional has started working on your request",
                 job.getId(),
-                "JOB"
-        );
+                "JOB");
 
         pushNotificationService.sendToClient(job.getClient().getId(), notification);
     }
@@ -103,8 +107,7 @@ public class NotificationService {
                 "Job Completed",
                 "Your job has been completed. Please rate the service",
                 job.getId(),
-                "JOB"
-        );
+                "JOB");
 
         pushNotificationService.sendToClient(job.getClient().getId(), notification);
     }
@@ -116,14 +119,13 @@ public class NotificationService {
                 "Job Cancelled",
                 "Your job has been cancelled. Reason: " + reason,
                 job.getId(),
-                "JOB"
-        );
+                "JOB");
 
         pushNotificationService.sendToClient(job.getClient().getId(), notification);
     }
 
     private Notification createNotification(NotificationType type, String title, String content,
-                                          Long businessId, String servedApp) {
+            Long businessId, String servedApp) {
         return Notification.builder()
                 .type(type)
                 .title(title)

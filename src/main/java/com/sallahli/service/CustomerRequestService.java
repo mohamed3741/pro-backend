@@ -30,6 +30,7 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
     private final LeadOfferService leadOfferService;
     private final AddressRepository addressRepository;
     private final AddressMapper addressMapper;
+    private final NotificationService notificationService;
 
     public CustomerRequestService(CustomerRequestRepository customerRequestRepository,
             CustomerRequestMapper customerRequestMapper,
@@ -37,7 +38,8 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
             CategoryRepository categoryRepository,
             LeadOfferService leadOfferService,
             AddressRepository addressRepository,
-            AddressMapper addressMapper) {
+            AddressMapper addressMapper,
+            NotificationService notificationService) {
         super(customerRequestRepository, customerRequestMapper);
         this.customerRequestRepository = customerRequestRepository;
         this.customerRequestMapper = customerRequestMapper;
@@ -46,6 +48,7 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
         this.leadOfferService = leadOfferService;
         this.addressRepository = addressRepository;
         this.addressMapper = addressMapper;
+        this.notificationService = notificationService;
     }
 
     // ========================================================================
@@ -85,6 +88,10 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
         CustomerRequest saved = customerRequestRepository.save(request);
         log.info("Created customer request {} for client {}", saved.getId(),
                 saved.getClient() != null ? saved.getClient().getId() : "anonymous");
+
+        if (saved.getClient() != null) {
+            notificationService.sendRequestCreatedNotification(saved.getClient(), saved);
+        }
 
         return getMapper().toDto(saved);
     }
