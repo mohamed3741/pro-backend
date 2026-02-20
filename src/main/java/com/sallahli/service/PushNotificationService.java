@@ -90,6 +90,48 @@ public class PushNotificationService {
     }
 
     // ========================================================================
+    // Admin / Back-Office Send Method
+    // ========================================================================
+
+    public void sendAdminNotification(com.sallahli.dto.sallahli.AdminNotificationRequestDTO request) {
+        Notification notification = Notification.builder()
+                .title(request.getTitle())
+                .content(request.getContent())
+                .type(request.getType() != null ? request.getType()
+                        : com.sallahli.model.Enum.NotificationType.INFORMATION)
+                .businessId(request.getBusinessId())
+                .servedApp(request.getServedApp())
+                .build();
+
+        switch (request.getTargetAudience()) {
+            case ALL_USERS:
+                sendToAllByProfileType(ProfileType.CLIENT, notification);
+                sendToAllByProfileType(ProfileType.PRO, notification);
+                break;
+            case ALL_PROS:
+                sendToAllByProfileType(ProfileType.PRO, notification);
+                break;
+            case ALL_CLIENTS:
+                sendToAllByProfileType(ProfileType.CLIENT, notification);
+                break;
+            case SPECIFIC_PROS:
+                if (request.getTargetIds() != null) {
+                    for (Long proId : request.getTargetIds()) {
+                        sendToPro(proId, notification);
+                    }
+                }
+                break;
+            case SPECIFIC_CLIENTS:
+                if (request.getTargetIds() != null) {
+                    for (Long clientId : request.getTargetIds()) {
+                        sendToClient(clientId, notification);
+                    }
+                }
+                break;
+        }
+    }
+
+    // ========================================================================
     // Platform-Specific Send Methods
     // ========================================================================
 
