@@ -22,5 +22,6 @@ public enum NotificationType {
     CLIENT_REQUEST_UPDATED, // Client request status updated
     CLIENT_REQUEST_CREATED, // Client request created
     PAYMENT_CONFIRMED, // Payment confirmed
-    PAYMENT_FAILED // Payment failed
+    PAYMENT_FAILED,// Payment failed,
+    INFORMATION
 }
