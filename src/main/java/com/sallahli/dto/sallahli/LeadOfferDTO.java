@@ -20,9 +20,9 @@ public class LeadOfferDTO {
     private ProDTO pro;
     private BigDecimal distanceKm;
     private Long price;
+    private Long proposedPrice;
     private LeadOfferStatus status;
     private LocalDateTime offeredAt;
     private LocalDateTime expiresAt;
     private LocalDateTime createdAt;
 }
-

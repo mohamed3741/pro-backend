@@ -37,6 +37,9 @@ public class LeadOffer extends HasTimestamps {
     @Builder.Default
     private Long price = 50L;
 
+    @Column(name = "proposed_price")
+    private Long proposedPrice;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
@@ -45,7 +48,7 @@ public class LeadOffer extends HasTimestamps {
     private LocalDateTime offeredAt;
     private LocalDateTime expiresAt;
 
-    @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"request_id", "pro_id"}))
-    public static class UniqueRequestProConstraint {}
+    @Table(uniqueConstraints = @UniqueConstraint(columnNames = { "request_id", "pro_id" }))
+    public static class UniqueRequestProConstraint {
+    }
 }
-

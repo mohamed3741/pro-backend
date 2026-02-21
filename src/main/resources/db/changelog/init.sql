@@ -721,3 +721,10 @@ ALTER TABLE pro DROP COLUMN IF EXISTS trade_id;
 --changeset mohamdi:init-sql/15
 ALTER TABLE category ADD COLUMN IF NOT EXISTS name_ar VARCHAR(255);
 ALTER TABLE category ADD COLUMN IF NOT EXISTS description_ar TEXT;
+
+--changeset mohamdi:init-sql/16
+ALTER TABLE lead_offer ADD COLUMN IF NOT EXISTS proposed_price BIGINT;
+
+ALTER TABLE customer_request ALTER COLUMN status SET DEFAULT 'BROADCASTED';
+
+UPDATE customer_request SET status = 'EXPIRED' WHERE status = 'OPEN';

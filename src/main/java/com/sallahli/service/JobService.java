@@ -26,18 +26,21 @@ public class JobService extends AbstractCrudService<Job, JobDTO> {
     private final CustomerRequestRepository customerRequestRepository;
     private final ProRepository proRepository;
     private final CustomerRequestService customerRequestService;
+    private final ClientRepository clientRepository;
 
     public JobService(JobRepository jobRepository,
             JobMapper jobMapper,
             CustomerRequestRepository customerRequestRepository,
             ProRepository proRepository,
-            @Lazy CustomerRequestService customerRequestService) {
+            @Lazy CustomerRequestService customerRequestService,
+            ClientRepository clientRepository) {
         super(jobRepository, jobMapper);
         this.jobRepository = jobRepository;
         this.jobMapper = jobMapper;
         this.customerRequestRepository = customerRequestRepository;
         this.proRepository = proRepository;
         this.customerRequestService = customerRequestService;
+        this.clientRepository = clientRepository;
     }
 
     // ========================================================================
@@ -158,6 +161,28 @@ public class JobService extends AbstractCrudService<Job, JobDTO> {
     }
 
     @Transactional(readOnly = true)
+    public List<JobDTO> findMyClientJobs(String username) {
+        Client client = clientRepository.findByUsername(username);
+        if (client == null)
+            throw new NotFoundException("Client not found: " + username);
+        return findByClientId(client.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public List<JobDTO> findMyProJobs(String username) {
+        Pro pro = proRepository.findByTel(username)
+                .orElseThrow(() -> new NotFoundException("Pro not found: " + username));
+        return findByProId(pro.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public List<JobDTO> findMyActiveProJobs(String username) {
+        Pro pro = proRepository.findByTel(username)
+                .orElseThrow(() -> new NotFoundException("Pro not found: " + username));
+        return findActiveJobsByProId(pro.getId());
+    }
+
+    @Transactional(readOnly = true)
     public List<JobDTO> findCompletedJobsInDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         List<Job> jobs = jobRepository.findCompletedJobsInDateRange(startDate, endDate);
         return getMapper().toDtos(jobs);
@@ -176,6 +201,20 @@ public class JobService extends AbstractCrudService<Job, JobDTO> {
     public Double getAverageRatingByPro(Long proId) {
         Double avg = jobRepository.getAverageRatingByPro(proId);
         return avg != null ? avg : 5.0;
+    }
+
+    @Transactional(readOnly = true)
+    public Long countMyCompletedProJobs(String username) {
+        Pro pro = proRepository.findByTel(username)
+                .orElseThrow(() -> new NotFoundException("Pro not found: " + username));
+        return countCompletedJobsByPro(pro.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public Double getMyAverageRating(String username) {
+        Pro pro = proRepository.findByTel(username)
+                .orElseThrow(() -> new NotFoundException("Pro not found: " + username));
+        return getAverageRatingByPro(pro.getId());
     }
 
     @Transactional

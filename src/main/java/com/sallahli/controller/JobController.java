@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -85,17 +86,34 @@ public class JobController {
     // Query Operations
     // ========================================================================
 
+    @GetMapping("/my-pro-jobs")
+    @PreAuthorize("hasRole('PRO')")
+    @Operation(summary = "Get my jobs as pro", description = "Returns all jobs for the authenticated professional")
+    public ResponseEntity<List<JobDTO>> findMyProJobs(Authentication authentication) {
+        log.debug("REST request to get jobs for current pro");
+        return ResponseEntity.ok(jobService.findMyProJobs(authentication.getName()));
+    }
+
+    @GetMapping("/my-client-jobs")
+    @PreAuthorize("hasRole('CLIENT')")
+    @Operation(summary = "Get my jobs as client", description = "Returns all jobs for the authenticated client")
+    public ResponseEntity<List<JobDTO>> findMyClientJobs(
+            Authentication authentication) {
+        log.debug("REST request to get jobs for current client");
+        return ResponseEntity.ok(jobService.findMyClientJobs(authentication.getName()));
+    }
+
     @GetMapping("/by-pro/{proId}")
-    @PreAuthorize("hasAnyRole('PRO', 'ADMIN')")
-    @Operation(summary = "Get jobs by pro", description = "Returns all jobs for a specific professional")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get jobs by pro", description = "Returns all jobs for a specific professional (Admin only)")
     public ResponseEntity<List<JobDTO>> findByProId(@PathVariable Long proId) {
         log.debug("REST request to get jobs for pro {}", proId);
         return ResponseEntity.ok(jobService.findByProId(proId));
     }
 
     @GetMapping("/by-client/{clientId}")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN')")
-    @Operation(summary = "Get jobs by client", description = "Returns all jobs for a specific client")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get jobs by client", description = "Returns all jobs for a specific client (Admin only)")
     public ResponseEntity<List<JobDTO>> findByClientId(@PathVariable Long clientId) {
         log.debug("REST request to get jobs for client {}", clientId);
         return ResponseEntity.ok(jobService.findByClientId(clientId));
@@ -109,9 +127,18 @@ public class JobController {
         return ResponseEntity.ok(jobService.findByStatus(status));
     }
 
+    @GetMapping("/my-pro-jobs/active")
+    @PreAuthorize("hasRole('PRO')")
+    @Operation(summary = "Get my active jobs", description = "Returns all in-progress jobs for the authenticated professional")
+    public ResponseEntity<List<JobDTO>> findMyActiveProJobs(
+            Authentication authentication) {
+        log.debug("REST request to get active jobs for current pro");
+        return ResponseEntity.ok(jobService.findMyActiveProJobs(authentication.getName()));
+    }
+
     @GetMapping("/by-pro/{proId}/active")
-    @PreAuthorize("hasAnyRole('PRO', 'ADMIN')")
-    @Operation(summary = "Get active jobs for pro", description = "Returns all in-progress jobs for a professional")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get active jobs for pro", description = "Returns all in-progress jobs for a professional (Admin only)")
     public ResponseEntity<List<JobDTO>> findActiveJobsByProId(@PathVariable Long proId) {
         log.debug("REST request to get active jobs for pro {}", proId);
         return ResponseEntity.ok(jobService.findActiveJobsByProId(proId));
@@ -131,17 +158,33 @@ public class JobController {
     // Statistics
     // ========================================================================
 
+    @GetMapping("/my-pro-jobs/count")
+    @PreAuthorize("hasRole('PRO')")
+    @Operation(summary = "Get my completed job count", description = "Returns count of completed jobs for the authenticated pro")
+    public ResponseEntity<Long> countMyCompletedJobs(Authentication authentication) {
+        log.debug("REST request to count completed jobs for current pro");
+        return ResponseEntity.ok(jobService.countMyCompletedProJobs(authentication.getName()));
+    }
+
     @GetMapping("/by-pro/{proId}/count")
-    @PreAuthorize("hasAnyRole('PRO', 'ADMIN')")
-    @Operation(summary = "Get completed job count", description = "Returns count of completed jobs for a pro")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get completed job count", description = "Returns count of completed jobs for a pro (Admin only)")
     public ResponseEntity<Long> countCompletedJobsByPro(@PathVariable Long proId) {
         log.debug("REST request to count completed jobs for pro {}", proId);
         return ResponseEntity.ok(jobService.countCompletedJobsByPro(proId));
     }
 
+    @GetMapping("/my-pro-jobs/rating")
+    @PreAuthorize("hasRole('PRO')")
+    @Operation(summary = "Get my average rating", description = "Returns average rating for the authenticated pro's jobs")
+    public ResponseEntity<Double> getMyAverageRating(Authentication authentication) {
+        log.debug("REST request to get average rating for current pro");
+        return ResponseEntity.ok(jobService.getMyAverageRating(authentication.getName()));
+    }
+
     @GetMapping("/by-pro/{proId}/rating")
-    @PreAuthorize("hasAnyRole('PRO', 'ADMIN')")
-    @Operation(summary = "Get average rating", description = "Returns average rating for a pro's jobs")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get average rating", description = "Returns average rating for a pro's jobs (Admin only)")
     public ResponseEntity<Double> getAverageRatingByPro(@PathVariable Long proId) {
         log.debug("REST request to get average rating for pro {}", proId);
         return ResponseEntity.ok(jobService.getAverageRatingByPro(proId));

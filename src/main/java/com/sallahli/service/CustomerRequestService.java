@@ -82,32 +82,10 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
         applyRelationships(request, dto);
 
         // Set defaults
-        request.setStatus(RequestStatus.OPEN);
         request.setArchived(false);
 
-        CustomerRequest saved = customerRequestRepository.save(request);
-        log.info("Created customer request {} for client {}", saved.getId(),
-                saved.getClient() != null ? saved.getClient().getId() : "anonymous");
-
-        if (saved.getClient() != null) {
-            notificationService.sendRequestCreatedNotification(saved.getClient(), saved);
-        }
-
-        return getMapper().toDto(saved);
-    }
-
-    @Transactional
-    public CustomerRequestDTO broadcastRequest(Long requestId) {
-        CustomerRequest request = findCRById(requestId);
-
-        if (request.getStatus() != RequestStatus.OPEN) {
-            throw new BadRequestException(
-                    "Request must be in OPEN status to broadcast. Current: " + request.getStatus());
-        }
-
-        // Get category to determine workflow type
         Category category = request.getCategory();
-        WorkflowType workflowType = category.getWorkflowType();
+        WorkflowType workflowType = category != null ? category.getWorkflowType() : WorkflowType.FIRST_CLICK;
 
         request.setStatus(RequestStatus.BROADCASTED);
         request.setBroadcastedAt(LocalDateTime.now());
@@ -118,11 +96,15 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
         request.setExpiresAt(LocalDateTime.now().plusMinutes(expirationMinutes));
 
         CustomerRequest saved = customerRequestRepository.save(request);
+        log.info("Created and broadcasted customer request {} for client {}", saved.getId(),
+                saved.getClient() != null ? saved.getClient().getId() : "anonymous");
+
+        if (saved.getClient() != null) {
+            notificationService.sendRequestCreatedNotification(saved.getClient(), saved);
+        }
 
         // Trigger lead offers to available pros
         leadOfferService.createLeadOffersForRequest(saved);
-
-        log.info("Broadcasted request {} with workflow type {}", requestId, workflowType);
 
         return getMapper().toDto(saved);
     }
@@ -186,6 +168,15 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
     }
 
     @Transactional(readOnly = true)
+    public List<CustomerRequestDTO> findMyRequests(String username) {
+        Client client = clientRepository.findByUsername(username);
+        if (client == null) {
+            throw new NotFoundException("Authenticated client not found: " + username);
+        }
+        return findByClientId(client.getId());
+    }
+
+    @Transactional(readOnly = true)
     public List<CustomerRequestDTO> findByStatus(RequestStatus status) {
         List<CustomerRequest> requests = customerRequestRepository.findByStatus(status);
         return getMapper().toDtos(requests);
@@ -218,7 +209,7 @@ public class CustomerRequestService extends AbstractCrudService<CustomerRequest,
     @Transactional
     public int expireOldRequests(int hoursOld) {
         LocalDateTime cutoff = LocalDateTime.now().minusHours(hoursOld);
-        List<CustomerRequest> expired = customerRequestRepository.findExpiredOpenRequests(cutoff);
+        List<CustomerRequest> expired = customerRequestRepository.findExpiredBroadcastedRequests(cutoff);
 
         for (CustomerRequest request : expired) {
             request.setStatus(RequestStatus.EXPIRED);

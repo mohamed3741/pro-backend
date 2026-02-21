@@ -24,17 +24,19 @@ public interface CustomerRequestRepository extends GenericRepository<CustomerReq
     @Query("SELECT r FROM CustomerRequest r WHERE r.status = 'BROADCASTED' AND r.expiresAt > :now")
     List<CustomerRequest> findActiveBroadcastedRequests(@Param("now") LocalDateTime now);
 
-    @Query("SELECT r FROM CustomerRequest r WHERE r.status = 'OPEN' AND r.createdAt < :cutoffTime")
-    List<CustomerRequest> findExpiredOpenRequests(@Param("cutoffTime") LocalDateTime cutoffTime);
+    @Query("SELECT r FROM CustomerRequest r WHERE r.status = 'BROADCASTED' AND r.createdAt < :cutoffTime")
+    List<CustomerRequest> findExpiredBroadcastedRequests(@Param("cutoffTime") LocalDateTime cutoffTime);
 
     @Query("SELECT COUNT(r) FROM CustomerRequest r WHERE r.status = 'DONE' AND r.createdAt BETWEEN :startDate AND :endDate")
-    Long countCompletedRequestsInDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    Long countCompletedRequestsInDateRange(@Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 
-    // Geospatial query to find requests near a location (simplified - you might want to use PostGIS for real geospatial)
+    // Geospatial query to find requests near a location (simplified - you might
+    // want to use PostGIS for real geospatial)
     @Query("SELECT r FROM CustomerRequest r WHERE " +
-           "r.latitude BETWEEN :minLat AND :maxLat AND " +
-           "r.longitude BETWEEN :minLng AND :maxLng AND " +
-           "r.status IN ('OPEN', 'BROADCASTED')")
+            "r.latitude BETWEEN :minLat AND :maxLat AND " +
+            "r.longitude BETWEEN :minLng AND :maxLng AND " +
+            "r.status = 'BROADCASTED'")
     List<CustomerRequest> findRequestsInBoundingBox(
             @Param("minLat") Double minLat,
             @Param("maxLat") Double maxLat,
@@ -46,4 +48,3 @@ public interface CustomerRequestRepository extends GenericRepository<CustomerReq
     @Query("SELECT r FROM CustomerRequest r ORDER BY r.createdAt DESC")
     List<CustomerRequest> findRecentRequests(Pageable pageable);
 }
-

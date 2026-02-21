@@ -40,8 +40,7 @@ public class DashboardService {
         Long totalRevenueRaw = proWalletTransactionRepository.getTotalRevenue();
         BigDecimal totalRevenue = totalRevenueRaw != null ? BigDecimal.valueOf(totalRevenueRaw) : BigDecimal.ZERO;
 
-        Long pendingRequests = customerRequestRepository.countByStatus(RequestStatus.OPEN)
-                + customerRequestRepository.countByStatus(RequestStatus.BROADCASTED);
+        Long pendingRequests = customerRequestRepository.countByStatus(RequestStatus.BROADCASTED);
         Long completedRequests = customerRequestRepository.countByStatus(RequestStatus.DONE);
 
         LocalDateTime startOfMonth = LocalDateTime.now()

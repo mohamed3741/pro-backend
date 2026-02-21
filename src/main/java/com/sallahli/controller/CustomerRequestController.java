@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -82,18 +83,6 @@ public class CustomerRequestController {
     // Request Lifecycle
     // ========================================================================
 
-    @PostMapping("/{id}/broadcast")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN')")
-    @Operation(summary = "Broadcast request", description = "Broadcasts request to nearby available professionals")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Request broadcasted successfully"),
-            @ApiResponse(responseCode = "400", description = "Request cannot be broadcasted")
-    })
-    public ResponseEntity<CustomerRequestDTO> broadcastRequest(@PathVariable Long id) {
-        log.debug("REST request to broadcast customer request {}", id);
-        return ResponseEntity.ok(customerRequestService.broadcastRequest(id));
-    }
-
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN')")
     @Operation(summary = "Cancel request", description = "Cancels a customer request")
@@ -116,9 +105,18 @@ public class CustomerRequestController {
     // Query Operations
     // ========================================================================
 
+    @GetMapping("/my")
+    @PreAuthorize("hasRole('CLIENT')")
+    @Operation(summary = "Get my requests", description = "Returns all requests for the authenticated client")
+    public ResponseEntity<List<CustomerRequestDTO>> findMyRequests(
+            Authentication authentication) {
+        log.debug("REST request to get customer requests for current client");
+        return ResponseEntity.ok(customerRequestService.findMyRequests(authentication.getName()));
+    }
+
     @GetMapping("/by-client/{clientId}")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN')")
-    @Operation(summary = "Get requests by client", description = "Returns all requests for a specific client")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get requests by client", description = "Returns all requests for a specific client (Admin only)")
     public ResponseEntity<List<CustomerRequestDTO>> findByClientId(@PathVariable Long clientId) {
         log.debug("REST request to get customer requests for client {}", clientId);
         return ResponseEntity.ok(customerRequestService.findByClientId(clientId));

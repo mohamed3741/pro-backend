@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -68,6 +69,24 @@ public class LeadOfferController {
         return ResponseEntity.ok(leadOfferService.acceptOffer(id));
     }
 
+    @PostMapping("/{id}/submit-price")
+    @PreAuthorize("hasAnyRole('PRO', 'ADMIN')")
+    @Operation(summary = "Submit price for lead offer", description = "Pro submits a proposed price for LEAD_OFFER workflow")
+    public ResponseEntity<LeadOfferDTO> submitOfferPrice(
+            @PathVariable Long id,
+            @RequestParam Long proposedPrice) {
+        log.debug("REST request to submit proposed price {} for lead offer {}", proposedPrice, id);
+        return ResponseEntity.ok(leadOfferService.submitOfferPrice(id, proposedPrice));
+    }
+
+    @PostMapping("/{id}/client-accept")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN')")
+    @Operation(summary = "Client accept lead offer", description = "Client accepts the pro's proposed price for LEAD_OFFER workflow")
+    public ResponseEntity<LeadOfferDTO> clientAcceptOffer(@PathVariable Long id) {
+        log.debug("REST request for client to accept lead offer {}", id);
+        return ResponseEntity.ok(leadOfferService.clientAcceptOffer(id));
+    }
+
     @PostMapping("/{id}/miss")
     @PreAuthorize("hasAnyRole('PRO', 'ADMIN')")
     @Operation(summary = "Miss lead offer", description = "Pro missed/rejected the lead offer")
@@ -96,17 +115,35 @@ public class LeadOfferController {
         return ResponseEntity.ok(leadOfferService.findByRequestId(requestId));
     }
 
+    @GetMapping("/my-pending")
+    @PreAuthorize("hasRole('PRO')")
+    @Operation(summary = "Get my pending offers", description = "Returns all pending lead offers for the authenticated professional")
+    public ResponseEntity<List<LeadOfferDTO>> findMyPendingOffers(
+            Authentication authentication) {
+        log.debug("REST request to get pending lead offers for current pro");
+        return ResponseEntity.ok(leadOfferService.findMyPendingOffers(authentication.getName()));
+    }
+
+    @GetMapping("/my-accepted")
+    @PreAuthorize("hasRole('PRO')")
+    @Operation(summary = "Get my accepted offers", description = "Returns all accepted lead offers for the authenticated professional")
+    public ResponseEntity<List<LeadOfferDTO>> findMyAcceptedOffers(
+            Authentication authentication) {
+        log.debug("REST request to get accepted lead offers for current pro");
+        return ResponseEntity.ok(leadOfferService.findMyAcceptedOffers(authentication.getName()));
+    }
+
     @GetMapping("/by-pro/{proId}/pending")
-    @PreAuthorize("hasAnyRole('PRO', 'ADMIN')")
-    @Operation(summary = "Get pending offers for pro", description = "Returns all pending lead offers for a specific pro")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get pending offers for pro", description = "Returns all pending lead offers for a specific pro (Admin only)")
     public ResponseEntity<List<LeadOfferDTO>> findPendingOffersByProId(@PathVariable Long proId) {
         log.debug("REST request to get pending lead offers for pro {}", proId);
         return ResponseEntity.ok(leadOfferService.findPendingOffersByProId(proId));
     }
 
     @GetMapping("/by-pro/{proId}/accepted")
-    @PreAuthorize("hasAnyRole('PRO', 'ADMIN')")
-    @Operation(summary = "Get accepted offers for pro", description = "Returns all accepted lead offers for a specific pro")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get accepted offers for pro", description = "Returns all accepted lead offers for a specific pro (Admin only)")
     public ResponseEntity<List<LeadOfferDTO>> findAcceptedOffersByProId(@PathVariable Long proId) {
         log.debug("REST request to get accepted lead offers for pro {}", proId);
         return ResponseEntity.ok(leadOfferService.findAcceptedOffersByProId(proId));

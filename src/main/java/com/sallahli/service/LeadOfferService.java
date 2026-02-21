@@ -129,6 +129,10 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
             throw new BadRequestException("Offer is not in OFFERED status. Current: " + offer.getStatus());
         }
 
+        if (offer.getRequest().getCategory().getWorkflowType() == WorkflowType.LEAD_OFFER) {
+            throw new BadRequestException("LEAD_OFFER workflow requires submitting a price, not direct acceptance.");
+        }
+
         if (offer.getExpiresAt() != null && offer.getExpiresAt().isBefore(LocalDateTime.now())) {
             throw new BadRequestException("Offer has expired");
         }
@@ -162,6 +166,65 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
     }
 
     @Transactional
+    public LeadOfferDTO submitOfferPrice(Long offerId, Long proposedPrice) {
+        LeadOffer offer = findEntityById(offerId);
+
+        if (offer.getStatus() != LeadOfferStatus.OFFERED) {
+            throw new BadRequestException("Offer is not in OFFERED status. Current: " + offer.getStatus());
+        }
+
+        if (offer.getRequest().getCategory().getWorkflowType() != WorkflowType.LEAD_OFFER) {
+            throw new BadRequestException("FIRST_CLICK workflow requires direct acceptance, not price submission.");
+        }
+
+        if (offer.getExpiresAt() != null && offer.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Offer has expired");
+        }
+
+        offer.setProposedPrice(proposedPrice);
+        offer.setStatus(LeadOfferStatus.PENDING_CLIENT_APPROVAL);
+        LeadOffer saved = leadOfferRepository.save(offer);
+
+        log.info("Lead offer {} submitted proposed price {} by pro {}", offerId, proposedPrice, offer.getPro().getId());
+
+        return getMapper().toDto(saved);
+    }
+
+    @Transactional
+    public LeadOfferDTO clientAcceptOffer(Long offerId) {
+        LeadOffer offer = findEntityById(offerId);
+
+        if (offer.getStatus() != LeadOfferStatus.PENDING_CLIENT_APPROVAL) {
+            throw new BadRequestException("Offer must be PENDING_CLIENT_APPROVAL. Current: " + offer.getStatus());
+        }
+
+        Pro pro = offer.getPro();
+        Long leadCost = offer.getPrice();
+
+        // Check wallet balance
+        if (pro.getWalletBalance() < leadCost) {
+            throw new BadRequestException("Pro has insufficient wallet balance. Cannot accept this offer right now.");
+        }
+
+        // Deduct lead cost from wallet
+        proWalletService.deductForLeadPurchase(pro.getId(), leadCost, offer.getRequest().getId());
+
+        // Update offer status
+        offer.setStatus(LeadOfferStatus.ACCEPTED);
+        LeadOffer saved = leadOfferRepository.save(offer);
+
+        // Create job
+        jobService.createJobFromLeadOffer(saved);
+
+        // Cancel other offers for this request
+        cancelOtherOffersForRequest(offer.getRequest().getId(), offerId);
+
+        log.info("Lead offer {} accepted by client. Job created for pro {}", offerId, pro.getId());
+
+        return getMapper().toDto(saved);
+    }
+
+    @Transactional
     public LeadOfferDTO missOffer(Long offerId) {
         LeadOffer offer = findEntityById(offerId);
 
@@ -181,8 +244,11 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
     public LeadOfferDTO cancelOffer(Long offerId) {
         LeadOffer offer = findEntityById(offerId);
 
-        if (offer.getStatus() != LeadOfferStatus.OFFERED) {
-            throw new BadRequestException("Can only cancel offers in OFFERED status. Current: " + offer.getStatus());
+        if (offer.getStatus() != LeadOfferStatus.OFFERED
+                && offer.getStatus() != LeadOfferStatus.PENDING_CLIENT_APPROVAL) {
+            throw new BadRequestException(
+                    "Can only cancel offers in OFFERED or PENDING_CLIENT_APPROVAL status. Current: "
+                            + offer.getStatus());
         }
 
         offer.setStatus(LeadOfferStatus.CANCELLED);
@@ -198,7 +264,8 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
         List<LeadOffer> offers = leadOfferRepository.findByRequestId(requestId);
 
         for (LeadOffer offer : offers) {
-            if (offer.getStatus() == LeadOfferStatus.OFFERED) {
+            if (offer.getStatus() == LeadOfferStatus.OFFERED
+                    || offer.getStatus() == LeadOfferStatus.PENDING_CLIENT_APPROVAL) {
                 offer.setStatus(LeadOfferStatus.CANCELLED);
                 leadOfferRepository.save(offer);
             }
@@ -211,7 +278,9 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
         List<LeadOffer> offers = leadOfferRepository.findByRequestId(requestId);
 
         for (LeadOffer offer : offers) {
-            if (!offer.getId().equals(exceptOfferId) && offer.getStatus() == LeadOfferStatus.OFFERED) {
+            if (!offer.getId().equals(exceptOfferId) &&
+                    (offer.getStatus() == LeadOfferStatus.OFFERED
+                            || offer.getStatus() == LeadOfferStatus.PENDING_CLIENT_APPROVAL)) {
                 offer.setStatus(LeadOfferStatus.CANCELLED);
                 leadOfferRepository.save(offer);
             }
@@ -235,9 +304,23 @@ public class LeadOfferService extends AbstractCrudService<LeadOffer, LeadOfferDT
     }
 
     @Transactional(readOnly = true)
+    public List<LeadOfferDTO> findMyPendingOffers(String username) {
+        Pro pro = proRepository.findByTel(username)
+                .orElseThrow(() -> new NotFoundException("Pro not found: " + username));
+        return findPendingOffersByProId(pro.getId());
+    }
+
+    @Transactional(readOnly = true)
     public List<LeadOfferDTO> findAcceptedOffersByProId(Long proId) {
         List<LeadOffer> offers = leadOfferRepository.findByProIdAndStatus(proId, LeadOfferStatus.ACCEPTED);
         return getMapper().toDtos(offers);
+    }
+
+    @Transactional(readOnly = true)
+    public List<LeadOfferDTO> findMyAcceptedOffers(String username) {
+        Pro pro = proRepository.findByTel(username)
+                .orElseThrow(() -> new NotFoundException("Pro not found: " + username));
+        return findAcceptedOffersByProId(pro.getId());
     }
 
     // ========================================================================

@@ -57,7 +57,7 @@ public class CustomerRequest extends HasTimestamps implements Archivable {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private RequestStatus status = RequestStatus.OPEN;
+    private RequestStatus status = RequestStatus.BROADCASTED;
 
     @Builder.Default
     private Boolean urgent = true;
@@ -69,4 +69,3 @@ public class CustomerRequest extends HasTimestamps implements Archivable {
     @Builder.Default
     private Boolean archived = false;
 }
-
